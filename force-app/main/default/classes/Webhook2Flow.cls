@@ -2,7 +2,7 @@
  * @description       : Webhook2Flow
  * @author            : Jack D. Pond
  * @group             : PSITex, LLC
- * @last modified on  : 03-25-2021
+ * @last modified on  : 04-08-2021
  * @last modified by  : Jack D. Pond
  * Modifications Log 
  * Ver   Date         Author         Modification
@@ -288,7 +288,7 @@ global with sharing class Webhook2Flow {
                     }
                 }
                 if (RestContext.response.statusCode == null)
-                    RestContext.response.statusCode = (foundErrors.size() > 0) ? BAD_RESPONSE_DEFAULT :  BAD_RESPONSE_DEFAULT;
+                    RestContext.response.statusCode = (foundErrors.size() > 0) ? BAD_RESPONSE_DEFAULT :  GOOD_RESPONSE_DEFAULT;
                 if( foundErrors.size() > 0 ){
                     retJSON.add('"webhook2flowErrors" : ' + JSON.serialize(foundErrors));
                 }
