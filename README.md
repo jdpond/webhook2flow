@@ -2,6 +2,8 @@
 
 Webhook2Flow automates the creation and logic using Flows (Flow Builder), to accept and service webhook integrations from external systems - as defined and available from those external systems.
 
+This is targeted as an app for inclusion in UnofficialSF - currently in Alpha stages
+
 - 1 [OVERVIEW](#Webhook2FlowAdministrator&#39;sGuide-OVERVI)
 - 2 [How Does This Work (The Basics)](#Webhook2FlowAdministrator&#39;sGuide-HowDoe)
   - 2.1 [Create the Saleforce Web Service Interface](#Webhook2FlowAdministrator&#39;sGuide-Create)
