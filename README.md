@@ -1,5 +1,7 @@
 # Webhook2Flow Administrator&#39;s Guide
 
+Webhook2Flow automates the creation and logic using Flows (Flow Builder), to accept and service webhook integrations from external systems - as defined and available from those external systems.
+
 - 1 [OVERVIEW](#Webhook2FlowAdministrator&#39;sGuide-OVERVI)
 - 2 [How Does This Work (The Basics)](#Webhook2FlowAdministrator&#39;sGuide-HowDoe)
   - 2.1 [Create the Saleforce Web Service Interface](#Webhook2FlowAdministrator&#39;sGuide-Create)
@@ -17,13 +19,11 @@
 
 ## OVERVIEW
 
-Most modern systems have the inherent capability of extending their capabilities through &quot;[webhooks](https://en.wikipedia.org/wiki/Webhook)&quot;, a common API interface using standard Internet protocols and authentications.  For example, if I wanted to add a contact to salesforce every time I add a gitlab user to track who is actually working on a support case, I could use the [Gitlab existing system hook](https://docs.gitlab.com/ee/system_hooks/system_hooks.html)  &quot;User created&quot; that HTTP POSTs after OATH2 authentication as a transaction request (using JSON) to a designated end point (in this case a Salesforce instance).  This is a standard hook for Gitlab (among dozens of others) which requires no more setup than creating the authentication connection - using a recipient web service to interpret and act on the request.
+Most (if not all) state-of-the-art systems and services allow and utilize webhooks to automate transactions between applications, systems, and services to integrate with other systems - and they are growing exponentially in popularity. .  A webhook can be a request for information or a request for an action.  Webhooks are increasingly available as extensions to system events and facilitate interaction with one or more external services when these events occur.
 
-Webhook2Flow automates the creation and logic of web services, creating a webhook servicer defined and processed through Flow Builder.
+&quot;[Webhooks](https://en.wikipedia.org/wiki/Webhook)&quot; are a common API interface using standard Internet protocols and authentications.  For example, if I wanted to add a contact to salesforce every time I add a github contributor to track who is actually working on an integration, I could use something like the [Gitlab existing system hook](https://docs.gitlab.com/ee/system_hooks/system_hooks.html)  &quot;User created&quot; that HTTP POSTs after OATH2 authentication as a transaction request (using JSON) to a designated end point (in this case a Salesforce instance).  This is a standard hook for Gitlab (among dozens of others) which requires no more setup than creating the authentication connection - using a recipient web service to interpret and act on the request.
 
-Most (if not all) state-of-the-art systems and services allow and utilize webhooks to automate transactions between applications, systems, and services and they are growing exponentially in popularity. .  A webhook can be a request for information or a request for an action.  Webhooks are increasingly available as extensions to system events and facilitate interaction with one or more external services when these events occur.
-
-In today&#39;s world, customers expect a seamless customer experience - no matter if that experience consists of behind the scenes business solutions and services that reside on a single platform or across multiple off-platform hosts. Webhook2Flow is the inverse of Salesforce External Services.  External Services smooth the way for this exchange by letting you declaratively (no coding!) integrate with externally hosted services that perform a variety of business actions or computations for use in your Salesforce org.  Webhook2Flow allows you to let Other systems integrate with your Salesforce services using existing or created webhooks.
+Webhook2Flow is the inverse of Salesforce External Services.  Using Webhook2flow, external Services integrate declaratively (no coding!) with your Salesforce instances to perform a variety of business actions or computations.  Webhook2Flow allows you to let Other systems integrate with your Salesforce services using existing or created webhooks in those External Systems/Services.
 
 | **External Services** | **Webhook2Flow Services** |
 | --- | --- |
