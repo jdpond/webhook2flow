@@ -6,7 +6,7 @@ This is targeted as an app for inclusion in UnofficialSF - currently in Alpha st
 
 - 1 [OVERVIEW](#Webhook2FlowAdministrator&#39;sGuide-OVERVI)
 - 2 [How Does This Work (The Basics)](#Webhook2FlowAdministrator&#39;sGuide-HowDoe)
-  - 2.1 [Create the Saleforce Web Service Interface](#Webhook2FlowAdministrator&#39;sGuide-Create)
+  - 2.1 [Create the Saleforce https request Interface](#Webhook2FlowAdministrator&#39;sGuide-Create)
   - 2.2 [Use the Information in the Flow](#Webhook2FlowAdministrator&#39;sGuide-Usethe)
 - 3 [Connect the Webhook - Address](#Webhook2FlowAdministrator&#39;sGuide-Connec)
 - 4 [About Authentication and Authorization](#Webhook2FlowAdministrator&#39;sGuide-AboutA)
@@ -23,7 +23,7 @@ This is targeted as an app for inclusion in UnofficialSF - currently in Alpha st
 
 Most (if not all) state-of-the-art systems and services allow and utilize webhooks to automate transactions between applications, systems, and services to integrate with other systems - and they are growing exponentially in popularity. .  A webhook can be a request for information or a request for an action.  Webhooks are increasingly available as extensions to system events and facilitate interaction with one or more external services when these events occur.
 
-&quot;[Webhooks](https://en.wikipedia.org/wiki/Webhook)&quot; are a common API interface using standard Internet protocols and authentications.  For example, if I wanted to add a contact to salesforce every time I add a github contributor to track who is actually working on an integration, I could use something like the [Gitlab existing system hook](https://docs.gitlab.com/ee/system_hooks/system_hooks.html)  &quot;User created&quot; that HTTP POSTs after OATH2 authentication as a transaction request (using JSON) to a designated end point (in this case a Salesforce instance).  This is a standard hook for Gitlab (among dozens of others) which requires no more setup than creating the authentication connection - using a recipient web service to interpret and act on the request.
+&quot;[Webhooks](https://en.wikipedia.org/wiki/Webhook)&quot; are a common API interface using standard Internet protocols and authentications.  For example, if I wanted to add a contact to salesforce every time I add a github contributor to track who is actually working on an integration, I could use something like the [Gitlab existing system hook](https://docs.gitlab.com/ee/system_hooks/system_hooks.html)  &quot;User created&quot; that HTTP POSTs after OATH2 authentication as a transaction request (using JSON) to a designated end point (in this case a Salesforce instance).  This is a standard hook for Gitlab (among dozens of others) which requires no more setup than creating the authentication connection - using a recipient https request to interpret and act on the request.
 
 Webhook2Flow is the inverse of Salesforce External Services.  Using Webhook2flow, external Services integrate declaratively (no coding!) with your Salesforce instances to perform a variety of business actions or computations.  Webhook2Flow allows you to let Other systems integrate with your Salesforce services using existing or created webhooks in those External Systems/Services.
 
@@ -31,14 +31,14 @@ Webhook2Flow is the inverse of Salesforce External Services.  Using Webhook2flow
 | --- | --- |
 | <img src="docs/ExternalServices.png" width="325"> | <img src="docs/Webhook2Flow.png" width="325"> |
 
-Webhook2Flow facilitates exposing a service (as a RESTful Web Service using JSON) entirely through flows.  To create this service declaratively (no coding!) you:
+Webhook2Flow facilitates exposing a service (as a RESTful service using JSON) entirely through flows.  To create this service declaratively (no coding!) you:
 
-1. Define the web service interface with Flow Variables
+1. Define the request interface with Flow Variables
   a. Request parameters are defined by marking variables as &quot;Available for Input&quot;
   b. Response parameters are defined by marking variables as &quot;Available for Output&quot;
 2. Use Flow logic and elements to service the request and build any needed response
 3. Provide detailed and supportive Error conditions and helpful diagnostic error messages (if needed)
-4. Provide web services through standard types of Service REST Resources(requests):
+4. Provide webhooks through standard types of Service REST Resources(requests):
   a. HTTP Delete
   b. HTTP Get
   c. HTTP Patch
@@ -47,11 +47,11 @@ Webhook2Flow facilitates exposing a service (as a RESTful Web Service using JSON
 
 ## How Does This Work (The Basics)
 
-When a system event occurs (examples; add a record, perform a query, update a record, a logic or time state change), by using a webhook, that system can make a request of another system using a standard web service interface.  This utility allows your Salesforce system to service the requests of external systems directly in Flows without having to go through the hassle of setting up the &quot;web service&quot; (at least on the salesforce side).  It does so by making your flow the service handler.
+When a system event occurs (examples; add a record, perform a query, update a record, a logic or time state change), by using a webhook, that system can make a request of another system using a standard webhook interface.  This utility allows your Salesforce system to service the requests of external systems directly in Flows without having to go through the hassle of setting up the &quot;webhook service request&quot; (at least on the salesforce side).  It does so by making your flow the service handler.
 
 For this example, let&#39;s use GitLab - primarily because Gitlab (a DevOps Tool) by necessity MUST integrate with many other systems - both Cloud services and custom systems.  They&#39;ve had the foresight to provide a mechanism for notifying external systems, requesting actions of external systems for just about every event the platform supports.  Perhaps more importantly they&#39;ve done a great job of simplistically documenting each webhook for each event.  Specifically, let&#39;s use what happens if a user is created on GitLab -[the &quot;User created&quot; system hook](https://docs.gitlab.com/ee/system_hooks/system_hooks.html).
 
-### Create the Saleforce Web Service Interface
+### Create the Saleforce request Interface
 
 Using Flow Builder, define the information you wish to exchange through this webhook.  This can include both input and output information, though in this example we&#39;ll only be using input parameters.  The Gitlab system hook  &quot;User created&quot; which HTTP POSTs the following information:
 
