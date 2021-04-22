@@ -7,7 +7,7 @@
     <inlineHelpText>The parameter in the header that is being used to pass the digest signature of the payload.  Example, for Github, the header parameter is &quot;X-Hub-Signature-256&quot;</inlineHelpText>
     <label>Header Signature Parameter</label>
     <length>120</length>
-    <required>true</required>
+    <required>false</required>
     <type>Text</type>
     <unique>false</unique>
 </CustomField>

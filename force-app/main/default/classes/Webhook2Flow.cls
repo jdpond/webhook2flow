@@ -2,7 +2,7 @@
  * @description       : Webhook2Flow
  * @author            : Jack D. Pond
  * @group             : PSITex, LLC
- * @last modified on  : 04-21-2021
+ * @last modified on  : 04-22-2021
  * @last modified by  : Jack D. Pond
  * Modifications Log 
  * Ver   Date         Author         Modification
@@ -91,13 +91,13 @@ global without sharing class Webhook2Flow {                         // without s
             
             RestContext.response.responseBody = Blob.valueof('{'+string.join(retJSON,',')+'}');
             RestContext.response.statusCode = BAD_RESPONSE_DEFAULT;
-/*
-            Webhook_Log__c thisLog = new Webhook_Log__c(
-                Log__c = RestContext.response.statusCode + ';' +
+            if (endPointDefinitionMDT.Save_Logs__c == true){
+                Webhook_Log__c thisLog = new Webhook_Log__c(
+                    Log__c = RestContext.response.statusCode + ';' +
                     RestContext.request.headers.get('X-Salesforce-SIP') + ';' + RestContext.request.headers.get('User-Agent') + ';' +
                     (RestContext.response.responseBody == null ? '' : RestContext.response.responseBody.toString()));
-            insert thisLog;
-*/
+                insert thisLog;
+            }
             return;
         }
         // end of payload validation
@@ -359,11 +359,13 @@ global without sharing class Webhook2Flow {                         // without s
 
             if (retJSON.size() > 0) RestContext.response.responseBody = Blob.valueof('{'+string.join(retJSON,',')+'}');
 //           system.debug('responseBody: ' + RestContext.response.responseBody);
-            Webhook_Log__c thisLog = new Webhook_Log__c(
-                Log__c = RestContext.response.statusCode + ';' +
+            if (endPointDefinitionMDT.Save_Logs__c == true){
+                Webhook_Log__c thisLog = new Webhook_Log__c(
+                    Log__c = RestContext.response.statusCode + ';' +
                     RestContext.request.headers.get('X-Salesforce-SIP') + ';' + RestContext.request.headers.get('User-Agent') + ';' +
                     (RestContext.response.responseBody == null ? '' : RestContext.response.responseBody.toString()));
-            insert thisLog;
+                insert thisLog;
+            }
             return;
         }
     }
