@@ -2,7 +2,7 @@
  * @description       : Webhook2Flow
  * @author            : Jack D. Pond
  * @group             : PSITex, LLC
- * @last modified on  : 04-08-2021
+ * @last modified on  : 04-21-2021
  * @last modified by  : Jack D. Pond
  * Modifications Log 
  * Ver   Date         Author         Modification
@@ -11,17 +11,22 @@
  * 1. Recursion
  * 2. Security and encodiing
  * 3. Null values
+ * 4. Log Requests and Responses (JSON.stringify)
+ * https://developer.salesforce.com/blogs/pat-patterson/2011/08/quick-tip-pretty-print-json-in-the-browser.html
  * https://psitexllc.quip.com/VoMrASkiH7PO/Enabling-Webhooks-to-Launch-Flows
  * https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/errorcodes.htm
+ * https://salesforce.com/services/wsdl/tooling  [for error messages under StatusCode]
+ * 
 **/
+
 @RestResource(urlMapping='/Webhook2Flow/*')
-global with sharing class Webhook2Flow {
+global without sharing class Webhook2Flow {                         // without sharing necessary for un-authenticated access via site
     static final String FLOW_VERSIONID_PARAM = 'flowVersionId';		// This is reserved for future if versioning is allowed in future
     static final String FLOW_ERROR_MESSAGE_OBJECT = 'FlowExecutionErrorEvent';
-    static final String TEST_FLOW_NAME = 'Webhook2Flow_test';
     static final String HTTP_RESPONSE_STATUSCODE = 'Webhook2Flow_RestResponse_statusCode';
     static final Integer BAD_RESPONSE_DEFAULT = 400 ; // BAD_REQUEST
     static final Integer GOOD_RESPONSE_DEFAULT = 200 ; // Normal Response
+    static final String HTTP_RESPONSE_CONTENT_TYPE = 'application/json' ; // Normal Response
     static final String INVALID_PARAMETER_TYPE = 'DATATYPE_INVALID';
 
     static final String MSG_COLLECTION_NOT_SUPPORTED = '- Collection is not a supported parameter type.';
@@ -54,12 +59,13 @@ global with sharing class Webhook2Flow {
 
     private static void doAll(String whichHttp){
         Map<string, string> paramsMap = RestContext.request.params;
+        paramsmap.putAll(RestContext.request.headers);
+        RestContext.response.headers.put('Content-Type',HTTP_RESPONSE_CONTENT_TYPE);
         String flowVersion;
         Map<String, Object> flowParams = new Map<String, Object>();
         FlowVariableView responseStatusCode;
         List<FlowVariableView> responseErrors = new List<FlowVariableView>();
         Boolean hasFlowError = false;
-        Integer thisFlowStatusCode = 200;
         List<String>retJSON = new List<String>{};
         List<FlowExecutionErrorEvent> foundErrors = new List<FlowExecutionErrorEvent>{};
         RestRequest req = RestContext.request;
@@ -68,6 +74,33 @@ global with sharing class Webhook2Flow {
         webHookFlowName = webHookFlowName.split('\\?')[0].split('&')[0];
         String[] requestTypes = webHookFlowName.split('_');
         List<String> flowNames = new List<String>{webHookFlowName};
+        // validate payload
+        Webhook_Payload_Validation__mdt endPointDefinitionMDT = Webhook_Payload_Validation__mdt.getInstance(webHookFlowName);
+        if(Test.isRunningTest()) endPointDefinitionMDT = Webhook2Flow_Test.getWebhook_Payload_Validation();
+        
+        if (!((endPointDefinitionMDT != null) && verifyDigestSignature(req, endPointDefinitionMDT))) { // If Webhook Payload Validation Custom Metadata found for this flow endpoint
+            foundErrors.add(new FlowExecutionErrorEvent(
+                ErrorId = 'FIELD_INTEGRITY_EXCEPTION',
+                ErrorMessage = 'HTTP Request message validation failed from UserAgent: ' + req.headers.get('User-Agent')
+            ));
+//            retJSON.add('"RestContext.request": '+JSON.serialize(RestContext.request));
+//            retJSON.add('"RestContext.request.resourcePath": '+JSON.serialize(RestContext.request.resourcePath));
+//            retJSON.add('"UserInfo.getUserId()": '+JSON.serialize(UserInfo.getUserId()));
+//            retJSON.add('"RestContext.request.requestURI": '+JSON.serialize(RestContext.request.requestURI));
+            retJSON.add('"webhook2flowErrors": ' + JSON.serialize(foundErrors));
+            
+            RestContext.response.responseBody = Blob.valueof('{'+string.join(retJSON,',')+'}');
+            RestContext.response.statusCode = BAD_RESPONSE_DEFAULT;
+/*
+            Webhook_Log__c thisLog = new Webhook_Log__c(
+                Log__c = RestContext.response.statusCode + ';' +
+                    RestContext.request.headers.get('X-Salesforce-SIP') + ';' + RestContext.request.headers.get('User-Agent') + ';' +
+                    (RestContext.response.responseBody == null ? '' : RestContext.response.responseBody.toString()));
+            insert thisLog;
+*/
+            return;
+        }
+        // end of payload validation
         if (requestTypes[requestTypes.size()-1] != whichHttp) flowNames.add(webHookFlowName+'_'+whichHttp);
         flowVersion = paramsMap.get(FLOW_VERSIONID_PARAM) != null? String.escapeSingleQuotes(paramsMap.get(FLOW_VERSIONID_PARAM)):null;
         FlowDefinitionView[] allViews = [SELECT ActiveVersionId,ApiName,Builder,Description,DurableId,Id,InstalledPackageName,IsActive,IsOutOfDate,IsSwingFlow,IsTemplate,Label,LastModifiedBy,LastModifiedDate,LatestVersionId,ManageableState,NamespacePrefix,ProcessType,TriggerType FROM FlowDefinitionView where ApiName in :flowNames ORDER BY ApiName ASC];
@@ -78,7 +111,18 @@ global with sharing class Webhook2Flow {
             FlowVariableView[] allParams = [SELECT ApiName,DataType,Description,DurableId,FlowVersionViewId,IsCollection,IsInput,IsOutput,ObjectType FROM FlowVariableView where FlowVersionViewId = :flowVersion];
             Map<String, FlowVariableView> outputParamMap = new Map<String, FlowVariableView> {};
             Map<String, FlowVariableView> inputParamMap = new Map<String, FlowVariableView>();
+            Map<String, String> customObjectMap = new Map<String, String>();
             for (FlowVariableView thisVariable : allParams){
+                string externalParamName = thisVariable.ApiName;
+                // check to see if an endpoint specific custom object exists
+                if (endPointDefinitionMDT.Custom_Object_Prefix__c != null &&
+                    endPointDefinitionMDT.Custom_Object_Prefix__c.trim().length() > 0 &&
+                    thisVariable.ApiName.left(endPointDefinitionMDT.Custom_Object_Prefix__c.trim().length()) == endPointDefinitionMDT.Custom_Object_Prefix__c.trim()) {
+                        string internalParamName = externalParamName;
+                        externalParamName = externalParamName.replaceFirst(endPointDefinitionMDT.Custom_Object_Prefix__c.trim(),'');
+                        customObjectMap.put(internalParamName, internalParamName);
+                }
+
                 if (thisVariable.IsInput) inputParamMap.put(thisVariable.ApiName,thisVariable);
                 if (thisVariable.IsOutput){  // if this is an error object (FlowExecutionErrorEvent) put it into the error stack, otherwise, standard output
                     if (thisVariable.ObjectType == FLOW_ERROR_MESSAGE_OBJECT){
@@ -208,21 +252,20 @@ global with sharing class Webhook2Flow {
                                     }
                                     if(thisCollection.size() >0) flowParams.put(thisInput.ApiName, thisCollection);
                                 }
-        
-/*
-                                when 'Apex'{     // Apex - this does not work yet
+                                when 'Apex'{     // object
                                     List<Object> thisCollection = new List<Object>();
+                                    Integer tstCnt = 0;
                                     while (parser.nextToken() != null & parser.getCurrentToken() != JSONToken.END_ARRAY) {
+//                                        retJSON.add('"'+thisInput.ApiName+tstcnt++ +'" : '+JSON.serialize(parser.getCurrentToken())); // This is a debug statement
                                         if (parser.getCurrentToken() == JSONToken.START_OBJECT) {
-                                            Schema.SobjectType oType = Schema.getGlobalDescribe().get(thisInput.ObjectType);
-                                            thisCollection.add((Object)parser.readValueAs(Type.forName(thisInput.ObjectType)));
-//                                            retJSON.add('"'+thisInput.ApiName+'(Name)" : '+JSON.serialize(thisCollection[thisCollection.size()-1].get('Name')));
+//                                            (Object) thisInstance = (Object) dynamicApexType.newInstance();
+                                            try{thisCollection.add((Object)parser.readValueAs(Type.forName(thisInput.ObjectType)));}
+                                			catch(Exception e){foundErrors.add(setupError(e, thisInput.ApiName));}
                                         }
                                     }
-                                    retJSON.add('"'+thisInput.ApiName+'(Array)" : '+JSON.serialize(thisCollection)); // This is a debug statement
-//                                    if(thisCollection.size() >0) flowParams.put(thisInput.ApiName, thisCollection);
+                                    String internalObjectAPIName = customObjectMap.get(thisInput.ApiName) != null ? customObjectMap.get(thisInput.ApiName) : thisInput.ApiName;
+                                    if(thisCollection.size() >0) flowParams.put(internalObjectAPIName, thisCollection);
                                 }
-*/
                                 when else {         //  additional types currently unsupported
                                     foundErrors.add( new FlowExecutionErrorEvent (
                                             ErrorId = INVALID_PARAMETER_TYPE,
@@ -266,8 +309,9 @@ global with sharing class Webhook2Flow {
                                 when 'SObject','Apex' {     // object
                                     if (parser.getCurrentToken() == JSONToken.START_OBJECT) {
 //                                        retJSON.add('"'+thisInput.ApiName+ '00" : '+JSON.serialize(parser.getCurrentToken())); // This is a debug statement
-                                        try{flowParams.put(thisInput.ApiName , parser.readValueAs(Type.forName(thisInput.ObjectType)));}
-                                    	catch(Exception e){foundErrors.add(setupError(e, thisInput.ApiName));}
+                                        String internalObjectAPIName = customObjectMap.get(thisInput.ApiName) != null ? customObjectMap.get(thisInput.ApiName) : thisInput.ApiName;
+                                        try{flowParams.put(internalObjectAPIName , parser.readValueAs(Type.forName(thisInput.ObjectType)));}
+                                    	catch(Exception e){foundErrors.add(setupError(e, internalObjectAPIName));}
                                     }
                                 }
                                 when else {         //  additional types currently unsupported
@@ -282,7 +326,8 @@ global with sharing class Webhook2Flow {
                 Flow.Interview thisFlow = Flow.Interview.createInterview(webHookFlowName, flowParams);
                 try {thisFlow.Start();} catch (Exception e){ foundErrors.add(setupError(e, webHookFlowName));}
                 for (FlowVariableView thisErrorParam : responseErrors){
-                    Object tmpObj = thisFlow.getVariableValue(thisErrorParam.ApiName);
+                    Object tmpObj;
+                    try { tmpObj = thisFlow.getVariableValue(thisErrorParam.ApiName); } catch (Exception e){ tmpObj = null;}
                     if (tmpObj != null){
                         foundErrors.addAll((List<FlowExecutionErrorEvent>)tmpObj);
                     }
@@ -296,17 +341,29 @@ global with sharing class Webhook2Flow {
                 outputParams.addall(outputParamMap.values());
                 for (FlowVariableView thisVariable : outputParams){
                     if(thisVariable.DataType != 'Apex'){
-                        retJSON.add('"'+thisVariable.ApiName+'" : ' + JSON.serialize(thisFlow.getVariableValue(thisVariable.ApiName)));
+                        String tmpJSON;
+                        try {tmpJSON = JSON.serialize(thisFlow.getVariableValue(thisVariable.ApiName)); } catch (Exception e){ tmpJSON = null;}
+                        if (tmpJSON != null) retJSON.add('"'+thisVariable.ApiName+'" : ' + tmpJSON);
                     }
                 }
             } else {  // parsing errors were found, so enumerate them
-                retJSON.add('"webhook2flowErrors" : ' + JSON.serialize(foundErrors));
-                RestContext.response.statusCode = 400;
+                retJSON.add('"webhook2flowErrors": ' + JSON.serialize(foundErrors));
+                RestContext.response.statusCode = BAD_RESPONSE_DEFAULT;
             }
 //            retJSON.add('"inputParamMap: "'+JSON.serialize(inputParamMap)); // This is a debug statement of all input params
 //            retJSON.add('"outputParamMap: "'+JSON.serialize(outputParamMap)); // This is a debug statement of all output params
 //            retJSON.add('"RestContext.response.statusCode" : '+JSON.serialize(RestContext.response.statusCode)); // This is a debug statement of all input params
-            RestContext.response.responseBody = Blob.valueof('{'+string.join(retJSON,',')+'}');
+//            retJSON.add('"RestContext.request": '+JSON.serialize(RestContext.request));
+//            retJSON.add('"RestContext": '+JSON.serialize(RestContext));
+
+
+            if (retJSON.size() > 0) RestContext.response.responseBody = Blob.valueof('{'+string.join(retJSON,',')+'}');
+//           system.debug('responseBody: ' + RestContext.response.responseBody);
+            Webhook_Log__c thisLog = new Webhook_Log__c(
+                Log__c = RestContext.response.statusCode + ';' +
+                    RestContext.request.headers.get('X-Salesforce-SIP') + ';' + RestContext.request.headers.get('User-Agent') + ';' +
+                    (RestContext.response.responseBody == null ? '' : RestContext.response.responseBody.toString()));
+            insert thisLog;
             return;
         }
     }
@@ -316,5 +373,43 @@ global with sharing class Webhook2Flow {
                 ErrorMessage = 'RelatedTo: ' + relatedTo + ' Line: ' + e.getLineNumber() + ' Msg: ' + e.getMessage()
             )
         );
+    }
+
+    private static Boolean verifyDigestSignature(RestRequest req, Webhook_Payload_Validation__mdt thisDescriptor){
+        Boolean validSignature = thisDescriptor.Host__c == req.headers.get('Host');
+        if (validSignature && thisDescriptor.Site_Name__c != null && thisDescriptor.Site_Name__c.trim().length() > 0){
+            try {
+                validSignature = (UserInfo.getUserId() == 
+                    [SELECT GuestUserId,UrlPathPrefix FROM Site where UrlPathPrefix = :thisDescriptor.Site_Name__c.trim() limit 1].GuestUserId);
+            } catch(Exception e) {
+                validSignature = Test.isRunningTest()? true : false;
+            }
+        }
+        try {
+            if (validSignature && thisDescriptor.Signing_Algorithm__c != null && thisDescriptor.Signing_Algorithm__c.trim().length() > 0 && thisDescriptor.Signing_Algorithm__c != 'None'){
+                String preHashHeader = '';
+                if (thisDescriptor.Payload_Concatenation__c != null && thisDescriptor.Payload_Concatenation__c.length() > 0 ){
+                    List<String> parsePres = thisDescriptor.Payload_Concatenation__c.split(';');
+                    for (String eachPre : parsePres){
+                        if(eachPre.contains('"')){
+                            preHashHeader += eachPre.replaceAll('"','');
+                        } else {
+                            preHashHeader += req.headers.get(eachPre);
+                        }
+                    }
+                }
+                String createdDigest = thisDescriptor.Signature_Prefix__c + EncodingUtil.convertToHex(
+                        crypto.generateMac(
+                            thisDescriptor.Signing_Algorithm__c,
+                            Blob.valueOf(preHashHeader + req.requestBody.toString()),
+                            Blob.valueOf(thisDescriptor.Secret__c)
+                        )
+                );
+                validSignature = (createdDigest == req.headers.get(thisDescriptor.Header_Signature_Parameter__c));
+            }
+        } catch(Exception e) {
+            validSignature = false;
+        }
+        return validSignature;
     }
 }

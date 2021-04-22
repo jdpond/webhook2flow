@@ -2,15 +2,23 @@
  * @description       : Webhook2Flow_Test - deployment test class for Webhook2Flow_Test
  * @author            : Jack D. Pond
  * @group             : 
- * @last modified on  : 03-24-2021
+ * @last modified on  : 04-22-2021
  * @last modified by  : Jack D. Pond
  * Modifications Log 
  * Ver   Date         Author         Modification
  * 1.0   03-24-2021   Jack D. Pond   Initial Version
 **/
 @isTest
-private class Webhook2Flow_Test{
+public class Webhook2Flow_Test{
 	//https://[YourOrg].my.salesforce.com/services/apexrest/Webhook2Flow/[your_flow_API_Name]?parameter1=this+param+value&parameter2=that+param2+value...
+	private Static Final String HEADER_PARM_TIMENAME = 'X_Test_Time_Stamp';
+	private Static Final String METADATA_SIGN_PARAM = 'X_Test_Signature';
+	private Static Final String HEADER_PARM_TIMEVALUE = string.valueOfGmt(System.now());
+	private Static Final String METADATA_HASH_PREFIX = '"v0:";'+HEADER_PARM_TIMENAME+';":"';
+	private Static Final String METADATA_HASH_PREFIX_VALUE = 'v0:'+ HEADER_PARM_TIMEVALUE +':';
+	private Static Final String METADATA_SIGN_PREFIX = 'wh2f=';
+	private Static Final String METADATA_SIGN_ALGORITH = 'hmacSHA256';
+	private Static Final String METADATA_SIGN_SECRET = '8vkiK0qdBe7fxjDBuF2A';  // random value - doesn't correspond to anything
 	private Static Final String URIPART_TO_CLASS = '/services/apexrest/Webhook2Flow/';
 	private Static Final String URIPART_FLOWNAME = 'Webhook2Flow_Deploy_Test';
 	private Static Final String URIPART_FLOWNAME_DEMO = 'Webhook2Flow_Deploy_Test';
@@ -94,7 +102,33 @@ private class Webhook2Flow_Test{
 	'    "testParamDatetime": "2021-01-29T12:26:00.00Z",' + 
 	'    "testParamBoolean": true,' + 
 	'    "testParamNumber": 101,' + 
-	'    "testParamCurrency": 12.34' + 
+	'    "testParamCurrency": 12.34,' + 
+	'	 "testApexDefined": {'+
+	'        "type" : "message",' + 
+	'        "channel" : "D024BE91L",' + 
+	'        "user" : "U2147483697",' + 
+	'        "text": "Hello hello can you hear me?",' + 
+	'        "event_ts": "1355517523.000005",' + 
+    '		 "channel_type": "im"' +
+	'    },' + 
+	'	 "testApexDefinedList": [' +
+	'		{'+
+	'        	"type" : "message",' + 
+	'        	"channel" : "D024BE91L",' + 
+	'        	"user" : "U2147483697",' + 
+	'        	"text": "Hello hello can you hear me 01?",' + 
+	'        	"event_ts": "1355517523.000005",' + 
+    '		 	"channel_type": "im"' +
+	'    	},' + 
+	'		{'+
+	'        	"type" : "message",' + 
+	'        	"channel" : "D024BE91L",' + 
+	'        	"user" : "U2147483697",' + 
+	'        	"text": "Hello hello can you hear me 02?",' + 
+	'        	"event_ts": "1355517523.000005",' + 
+    '		 	"channel_type": "im"' +
+	'    	}' + 
+	'    ]' + 
 	'}'	;
 
     private Static Final String BODY_JSON_BAD = 
@@ -166,7 +200,33 @@ private class Webhook2Flow_Test{
 	'    "testParamDate": "BadDate",' + 
 	'    "testParamDatetime": "BadDateTime",' + 
 	'    "testParamBoolean": "BadBoolean",' + 
-	'    "testParamNumber": "BadNumber"' + 
+	'    "testParamNumber": "BadNumber",' + 
+	'	 "testApexDefined": {'+
+	'        "type" : 1234.56,' + 
+	'        "channel" : "D024BE91L",' + 
+	'        "user" : "U2147483697",' + 
+	'        "text": "Hello hello can you hear me?",' + 
+	'        "event_ts": "1355517523.000005",' + 
+    '		 "channel_type": "im"' +
+	'    },' + 
+	'	 "testApexDefinedList": [' +
+	'		{'+
+	'        	"type" : 123456,' + 
+	'        	"channel" : "D024BE91L",' + 
+	'        	"user" : "U2147483697",' + 
+	'        	"text": "Hello hello can you hear me 01?",' + 
+	'        	"event_ts": "1355517523.000005",' + 
+    '		 	"channel_type": "im"' +
+	'    	},' + 
+	'		{'+
+	'        	"type" : 123456,' + 
+	'        	"channel" : "D024BE91L",' + 
+	'        	"user" : "U2147483697",' + 
+	'        	"text": "Hello hello can you hear me 02?",' + 
+	'        	"event_ts": "1355517523.000005",' + 
+    '		 	"channel_type": "im"' +
+	'    	}' + 
+	'    ]' + 
 	'}'	;
 
 	private Static Final String BODY_JSON_DEMO = 
@@ -181,8 +241,25 @@ private class Webhook2Flow_Test{
     '}' ;  
     
 	@testSetup static void setup(){
-
 	}
+
+    public static Webhook_Payload_Validation__mdt getWebhook_Payload_Validation(){
+        Webhook_Payload_Validation__mdt testPointDefinitionMDT = new Webhook_Payload_Validation__mdt(
+            DeveloperName = 'Webhook2Flow_Deploy_Test',
+            MasterLabel = 'Webhook2Flow_Deploy_Test',
+            Custom_Object_Prefix__c = 'wh2fTest_',
+            Description__c = 'test Description',
+            Header_Signature_Parameter__c = METADATA_SIGN_PARAM,
+            Host__c = URL.getSalesforceBaseUrl().toExternalForm().replaceFirst('https://',''),
+            Payload_Concatenation__c = METADATA_HASH_PREFIX,
+            Save_Logs__c = false,
+            Secret__c = METADATA_SIGN_SECRET,				// a randomly generated sequence - not a key to anything
+            Signature_Prefix__c = METADATA_SIGN_PREFIX,
+            Signing_Algorithm__c = METADATA_SIGN_ALGORITH,
+            Site_Name__c = 'slack_'
+        );
+        return  testPointDefinitionMDT;
+    }
 
 	@isTest static void t01_parameters_post_good_coverage() {
         if (true){
@@ -191,7 +268,16 @@ private class Webhook2Flow_Test{
             request.requestUri = URL.getSalesforceBaseUrl() + URIPART_TO_CLASS + URIPART_FLOWNAME + URIPART_GOOD_PARAMS;
             request.httpMethod = 'POST';
             request.addHeader('Content-Type', 'application/json');
+            request.addHeader('Host', URL.getSalesforceBaseUrl().toExternalForm().replaceFirst('https://',''));
+            request.addHeader(HEADER_PARM_TIMENAME, HEADER_PARM_TIMEVALUE);
             request.requestBody = Blob.valueOf(BODY_JSON);
+            system.debug('METADATA_HASH_PREFIX_VALUE: '+METADATA_HASH_PREFIX_VALUE);
+            request.addHeader(METADATA_SIGN_PARAM, METADATA_SIGN_PREFIX+EncodingUtil.convertToHex(crypto.generateMac(
+                            METADATA_SIGN_ALGORITH,
+                            Blob.valueOf(METADATA_HASH_PREFIX_VALUE + request.requestBody.toString()),
+                            Blob.valueOf(METADATA_SIGN_SECRET)))
+                        );
+            system.debug(METADATA_SIGN_PARAM+': '+request.headers.get(METADATA_SIGN_PARAM));
             request.addParameter('testParamNumber', '0');
             request.addParameter('testParamText', 'thisString');
             request.addParameter('testParamBoolean', 'true');
@@ -213,7 +299,14 @@ private class Webhook2Flow_Test{
             request.requestUri = URL.getSalesforceBaseUrl() + URIPART_TO_CLASS + URIPART_FLOWNAME + URIPART_BAD_PARAMS;
             request.httpMethod = 'POST';
             request.addHeader('Content-Type', 'application/json');
+            request.addHeader('Host', URL.getSalesforceBaseUrl().toExternalForm().replaceFirst('https://',''));
+            request.addHeader(HEADER_PARM_TIMENAME, HEADER_PARM_TIMEVALUE);
             request.requestBody = Blob.valueOf(BODY_JSON_BAD);
+            request.addHeader(METADATA_SIGN_PARAM, METADATA_SIGN_PREFIX+EncodingUtil.convertToHex(crypto.generateMac(
+                            METADATA_SIGN_ALGORITH,
+                            Blob.valueOf(METADATA_HASH_PREFIX_VALUE + request.requestBody.toString()),
+                            Blob.valueOf(METADATA_SIGN_SECRET)))
+                        );
             request.addParameter('testParamNumber', 'BadNumber');
             request.addParameter('testParamText', '1');
             request.addParameter('testParamBoolean', 'BadBoolean');
@@ -234,7 +327,14 @@ private class Webhook2Flow_Test{
             request.requestUri = URL.getSalesforceBaseUrl() + URIPART_TO_CLASS + URIPART_FLOWNAME;
             request.httpMethod = 'PUT';
             request.addHeader('Content-Type', 'application/json');
+			request.addHeader('Host', URL.getSalesforceBaseUrl().toExternalForm().replaceFirst('https://',''));
+            request.addHeader(HEADER_PARM_TIMENAME, HEADER_PARM_TIMEVALUE);
             request.requestBody = Blob.valueOf(BODY_JSON);
+            request.addHeader(METADATA_SIGN_PARAM, METADATA_SIGN_PREFIX+EncodingUtil.convertToHex(crypto.generateMac(
+                            METADATA_SIGN_ALGORITH,
+                            Blob.valueOf(METADATA_HASH_PREFIX_VALUE + request.requestBody.toString()),
+                            Blob.valueOf(METADATA_SIGN_SECRET)))
+                        );
             RestContext.request = request;
             RestContext.response = resp;
             Webhook2Flow.doPut();
@@ -249,7 +349,14 @@ private class Webhook2Flow_Test{
             request.requestUri = URL.getSalesforceBaseUrl() + URIPART_TO_CLASS + URIPART_FLOWNAME;
             request.httpMethod = 'DELETE';
             request.addHeader('Content-Type', 'application/json');
+			request.addHeader('Host', URL.getSalesforceBaseUrl().toExternalForm().replaceFirst('https://',''));
+            request.addHeader(HEADER_PARM_TIMENAME, HEADER_PARM_TIMEVALUE);
             request.requestBody = Blob.valueOf(BODY_JSON);
+            request.addHeader(METADATA_SIGN_PARAM, METADATA_SIGN_PREFIX+EncodingUtil.convertToHex(crypto.generateMac(
+                            METADATA_SIGN_ALGORITH,
+                            Blob.valueOf(METADATA_HASH_PREFIX_VALUE + request.requestBody.toString()),
+                            Blob.valueOf(METADATA_SIGN_SECRET)))
+                        );
             RestContext.request = request;
             RestContext.response = resp;
             Webhook2Flow.doDelete();
@@ -264,7 +371,14 @@ private class Webhook2Flow_Test{
             request.requestUri = URL.getSalesforceBaseUrl() + URIPART_TO_CLASS + URIPART_FLOWNAME;
             request.httpMethod = 'GET';
             request.addHeader('Content-Type', 'application/json');
+            request.addHeader('Host', URL.getSalesforceBaseUrl().toExternalForm().replaceFirst('https://',''));
+            request.addHeader(HEADER_PARM_TIMENAME, HEADER_PARM_TIMEVALUE);
             request.requestBody = Blob.valueOf(BODY_JSON);
+            request.addHeader(METADATA_SIGN_PARAM, METADATA_SIGN_PREFIX+EncodingUtil.convertToHex(crypto.generateMac(
+                            METADATA_SIGN_ALGORITH,
+                            Blob.valueOf(METADATA_HASH_PREFIX_VALUE + request.requestBody.toString()),
+                            Blob.valueOf(METADATA_SIGN_SECRET)))
+                        );
             RestContext.request = request;
             RestContext.response = resp;
             Webhook2Flow.doGet();
@@ -279,7 +393,14 @@ private class Webhook2Flow_Test{
             request.requestUri = URL.getSalesforceBaseUrl() + URIPART_TO_CLASS + URIPART_FLOWNAME;
             request.httpMethod = 'PATCH';
             request.addHeader('Content-Type', 'application/json');
+            request.addHeader('Host', URL.getSalesforceBaseUrl().toExternalForm().replaceFirst('https://',''));
+            request.addHeader(HEADER_PARM_TIMENAME, HEADER_PARM_TIMEVALUE);
             request.requestBody = Blob.valueOf(BODY_JSON);
+            request.addHeader(METADATA_SIGN_PARAM, METADATA_SIGN_PREFIX+EncodingUtil.convertToHex(crypto.generateMac(
+                            METADATA_SIGN_ALGORITH,
+                            Blob.valueOf(METADATA_HASH_PREFIX_VALUE + request.requestBody.toString()),
+                            Blob.valueOf(METADATA_SIGN_SECRET)))
+                        );
             RestContext.request = request;
             RestContext.response = resp;
             Webhook2Flow.doPatch();
@@ -294,14 +415,18 @@ private class Webhook2Flow_Test{
         request.requestUri = URL.getSalesforceBaseUrl() + URIPART_TO_CLASS + URIPART_FLOWNAME_DEMO;
         request.httpMethod = 'POST';
         request.addHeader('Content-Type', 'application/json');
+		request.addHeader('Host', URL.getSalesforceBaseUrl().toExternalForm().replaceFirst('https://',''));
+		request.addHeader(HEADER_PARM_TIMENAME, HEADER_PARM_TIMEVALUE);
         request.requestBody = Blob.valueOf(BODY_JSON_DEMO);
+        request.addHeader(METADATA_SIGN_PARAM, METADATA_SIGN_PREFIX+EncodingUtil.convertToHex(crypto.generateMac(
+            METADATA_SIGN_ALGORITH,
+            Blob.valueOf(METADATA_HASH_PREFIX_VALUE + request.requestBody.toString()),
+            Blob.valueOf(METADATA_SIGN_SECRET)))
+		);
         RestContext.request = request;
         RestContext.response = resp;
 		Webhook2Flow.doPost();
         List<Contact> coList = [Select Id, Name from Contact];
-        system.debug('RestContext.response.statusCode: '+RestContext.response.statusCode);
-        system.debug('RestContext.response: '+RestContext.response.responseBody.toString());
-        system.debug('Contact List: ' + coList);
         request = new RestRequest();
         resp = new RestResponse();
         request.requestUri = URL.getSalesforceBaseUrl() + URIPART_TO_CLASS + URIPART_FLOWNAME_DEMO;
