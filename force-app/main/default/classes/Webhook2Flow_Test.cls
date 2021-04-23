@@ -247,7 +247,6 @@ public class Webhook2Flow_Test{
         Webhook_Payload_Validation__mdt testPointDefinitionMDT = new Webhook_Payload_Validation__mdt(
             DeveloperName = 'Webhook2Flow_Deploy_Test',
             MasterLabel = 'Webhook2Flow_Deploy_Test',
-            Custom_Object_Prefix__c = 'slack_',
             Description__c = 'test Description',
             Header_Signature_Parameter__c = METADATA_SIGN_PARAM,
             Host__c = URL.getSalesforceBaseUrl().toExternalForm().replaceFirst('https://',''),

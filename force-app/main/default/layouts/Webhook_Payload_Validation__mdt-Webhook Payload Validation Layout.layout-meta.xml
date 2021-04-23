@@ -44,10 +44,6 @@
             </layoutItems>
             <layoutItems>
                 <behavior>Edit</behavior>
-                <field>Custom_Object_Prefix__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
                 <field>Save_Logs__c</field>
             </layoutItems>
             <layoutItems>
