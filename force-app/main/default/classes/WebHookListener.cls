@@ -2,7 +2,7 @@
  * @description       : 
  * @author            : Tom Snyder <tom@3ddd.com>
  * @group             : 
- * @last modified on  : 2021-04-22
+ * @last modified on  : 2021-04-23
  * @last modified by  : Tom Snyder <tom@3ddd.com>
  * Modifications Log 
  * Ver   Date         Author                      Modification
@@ -13,32 +13,13 @@
 @RestResource(urlMapping='/v1/WebHookListener/*')
 global class WebHookListener {
 
-	@HttpDelete
-    global static void doDelete() {
-        doAll('delete');
-    }
-  
-    @HttpGet
-    global static void doGet() {
-        doAll('get');
-    }
+	@HttpDelete global static void doDelete() 	{ doAll(); }
+    @HttpGet global static void doGet() 		{ doAll(); }
+	@HttpPatch global static void doPatch() 	{ doAll(); }
+	@HttpPost global static void doPost() 		{ doAll(); }
+    @HttpPut global static void doPut() 		{ doAll(); }
 
-	@HttpPatch
-    global static void doPatch() {
-        doAll('patch');
-    }
-  
-	@HttpPost
-	global static void doPost() {
-        doAll('post');
-	}
-
-    @HttpPut
-	global static void doPut() {
-        doAll('put');
-    }
-
-    private static void doAll(String httpMethod){
+    private static void doAll(){
         RestRequest req = RestContext.request;
         RestResponse resp = RestContext.response;
 
@@ -56,6 +37,11 @@ global class WebHookListener {
 			}
 
 			resp = handler.execute(evtConfig, req);
+			for ( string hkey : resp.headers.keySet()) {
+				RestContext.response.addHeader(hkey, resp.headers.get(hkey));
+			}
+			RestContext.response.responseBody = resp.responseBody;
+			RestContext.response.statusCode = resp.statusCode;
 
 			//RestContext.response.responseBody = Blob.valueOf(JSON.serializePretty(evtConfig));
         }
