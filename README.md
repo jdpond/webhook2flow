@@ -1,29 +1,16 @@
-# Webhook2Flow Administrator&#39;s Guide
+# Salesforce DX Project: Next Steps
 
-Webhook2Flow automates the creation and logic using Flows (Flow Builder), to accept and service webhook integrations from external systems - as defined and available from those external systems.
+Now that you’ve created a Salesforce DX project, what’s next? Here are some documentation resources to get you started.
 
-This is targeted as an app for inclusion in UnofficialSF - currently in Alpha stages
+## How Do You Plan to Deploy Your Changes?
 
-- 1 [OVERVIEW](#Webhook2FlowAdministrator&#39;sGuide-OVERVI)
-- 2 [How Does This Work (The Basics)](#Webhook2FlowAdministrator&#39;sGuide-HowDoe)
-  - 2.1 [Create the Saleforce https request Interface](#Webhook2FlowAdministrator&#39;sGuide-Create)
-  - 2.2 [Use the Information in the Flow](#Webhook2FlowAdministrator&#39;sGuide-Usethe)
-- 3 [Connect the Webhook - Address](#Webhook2FlowAdministrator&#39;sGuide-Connec)
-- 4 [About Authentication and Authorization](#Webhook2FlowAdministrator&#39;sGuide-AboutA)
-- 5 [Implementation Example](#Webhook2FlowAdministrator&#39;sGuide-Implem)
-  - 5.1 [Development Tips for this Example:](#Webhook2FlowAdministrator&#39;sGuide-Develo)
-- 6 [Example - Step by Step](#Webhook2FlowAdministrator&#39;sGuide-Exampl)
-- 7 [Advanced Technical Information and Capabilities](#Webhook2FlowAdministrator&#39;sGuide-Advanc)
-  - 7.1 [DataType Capabilities and Restrictions](#Webhook2FlowAdministrator&#39;sGuide-DataTy)
-  - 7.2 [Specifying the HTTP Response StatusCode](#Webhook2FlowAdministrator&#39;sGuide-Specif)
-    - 7.2.1 [Flow Error Example](#Webhook2FlowAdministrator&#39;sGuide-FlowEr)
-- 8 [References](#Webhook2FlowAdministrator&#39;sGuide-Refere)
+Do you want to deploy a set of changes, or create a self-contained application? Choose a [development model](https://developer.salesforce.com/tools/vscode/en/user-guide/development-models).
 
-## OVERVIEW
+## Configure Your Salesforce DX Project
 
-Most (if not all) state-of-the-art systems and services allow and utilize webhooks to automate transactions between applications, systems, and services to integrate with other systems - and they are growing exponentially in popularity. .  A webhook can be a request for information or a request for an action.  Webhooks are increasingly available as extensions to system events and facilitate interaction with one or more external services when these events occur.
+The `sfdx-project.json` file contains useful configuration information for your project. See [Salesforce DX Project Configuration](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm) in the _Salesforce DX Developer Guide_ for details about this file.
 
-&quot;[Webhooks](https://en.wikipedia.org/wiki/Webhook)&quot; are a common API interface using standard Internet protocols and authentications.  For example, if I wanted to add a contact to salesforce every time I add a github contributor to track who is actually working on an integration, I could use something like the [Gitlab existing system hook](https://docs.gitlab.com/ee/system_hooks/system_hooks.html)  &quot;User created&quot; that HTTP POSTs after OATH2 authentication as a transaction request (using JSON) to a designated end point (in this case a Salesforce instance).  This is a standard hook for Gitlab (among dozens of others) which requires no more setup than creating the authentication connection - using a recipient https request to interpret and act on the request.
+## Read All About It
 
 Webhook2Flow is the inverse of Salesforce External Services.  Using Webhook2flow, external Services integrate declaratively (no coding!) with your Salesforce instances to perform a variety of business actions or computations.  Webhook2Flow allows you to let Other systems integrate with your Salesforce services using existing or created webhooks in those External Systems/Services.
 
