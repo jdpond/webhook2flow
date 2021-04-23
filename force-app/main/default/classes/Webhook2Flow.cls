@@ -91,13 +91,7 @@ global without sharing class Webhook2Flow {                         // without s
             
             RestContext.response.responseBody = Blob.valueof('{'+string.join(retJSON,',')+'}');
             RestContext.response.statusCode = BAD_RESPONSE_DEFAULT;
-            if (endPointDefinitionMDT.Save_Logs__c == true){
-                Webhook_Log__c thisLog = new Webhook_Log__c(
-                    Log__c = RestContext.response.statusCode + ';' +
-                    RestContext.request.headers.get('X-Salesforce-SIP') + ';' + RestContext.request.headers.get('User-Agent') + ';' +
-                    (RestContext.response.responseBody == null ? '' : RestContext.response.responseBody.toString()));
-                insert thisLog;
-            }
+            if (endPointDefinitionMDT.Save_Logs__c == true) postLog();
             return;
         }
         // end of payload validation
@@ -113,15 +107,7 @@ global without sharing class Webhook2Flow {                         // without s
             Map<String, FlowVariableView> inputParamMap = new Map<String, FlowVariableView>();
             Map<String, String> customObjectMap = new Map<String, String>();
             for (FlowVariableView thisVariable : allParams){
-                string externalParamName = thisVariable.ApiName;
-                // check to see if an endpoint specific custom object exists
-                if (endPointDefinitionMDT.Custom_Object_Prefix__c != null &&
-                    endPointDefinitionMDT.Custom_Object_Prefix__c.trim().length() > 0 &&
-                    thisVariable.ApiName.left(endPointDefinitionMDT.Custom_Object_Prefix__c.trim().length()) == endPointDefinitionMDT.Custom_Object_Prefix__c.trim()) {
-                        string internalParamName = externalParamName;
-                        externalParamName = externalParamName.replaceFirst(endPointDefinitionMDT.Custom_Object_Prefix__c.trim(),'');
-                        customObjectMap.put(internalParamName, internalParamName);
-                }
+                string internalParamName = thisVariable.ApiName;
 
                 if (thisVariable.IsInput) inputParamMap.put(thisVariable.ApiName,thisVariable);
                 if (thisVariable.IsOutput){  // if this is an error object (FlowExecutionErrorEvent) put it into the error stack, otherwise, standard output
@@ -355,17 +341,8 @@ global without sharing class Webhook2Flow {                         // without s
 //            retJSON.add('"RestContext.response.statusCode" : '+JSON.serialize(RestContext.response.statusCode)); // This is a debug statement of all input params
 //            retJSON.add('"RestContext.request": '+JSON.serialize(RestContext.request));
 //            retJSON.add('"RestContext": '+JSON.serialize(RestContext));
-
-
             if (retJSON.size() > 0) RestContext.response.responseBody = Blob.valueof('{'+string.join(retJSON,',')+'}');
-//           system.debug('responseBody: ' + RestContext.response.responseBody);
-            if (endPointDefinitionMDT.Save_Logs__c == true){
-                Webhook_Log__c thisLog = new Webhook_Log__c(
-                    Log__c = RestContext.response.statusCode + ';' +
-                    RestContext.request.headers.get('X-Salesforce-SIP') + ';' + RestContext.request.headers.get('User-Agent') + ';' +
-                    (RestContext.response.responseBody == null ? '' : RestContext.response.responseBody.toString()));
-                insert thisLog;
-            }
+            if (endPointDefinitionMDT.Save_Logs__c == true) postLog();
             return;
         }
     }
@@ -413,5 +390,23 @@ global without sharing class Webhook2Flow {                         // without s
             validSignature = false;
         }
         return validSignature;
+    }
+    private static Void postLog(){
+        List<String> headers = new List<string>();
+        for( String hparm : RestContext.request.headers.keySet()) headers.add('"'+ hparm + '": "' + RestContext.request.headers.get(hparm) +'"');
+        List<String> uriparms = new List<string>();
+        for( String uriparm : RestContext.request.params.keySet()) uriparms.add('"'+ uriparm + '": "' + RestContext.request.params.get(uriparm) +'"');
+        Webhook_Log__c thisLog = new Webhook_Log__c(
+            httpMethod__c = RestContext.request.httpMethod,
+            remoteAddress__C = RestContext.request.remoteAddress,
+            requestURI__c = RestContext.request.requestURI,
+            resourcePath__c = RestContext.request.resourcePath,
+            statusCode__c = RestContext.response.statusCode,
+            headers__c = '{' + String.join(headers,',') + '}',
+            params__c = '{' + String.join(uriparms,',') + '}',
+            responseBody__c = '{' + (RestContext.response.responseBody == null ? '' : RestContext.response.responseBody.toString()) + '}',
+            requestBody__c = '{' + (RestContext.request.requestBody == null ? '' : RestContext.request.requestBody.toString()) + '}'
+        );
+        insert thisLog;
     }
 }

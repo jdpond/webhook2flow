@@ -247,16 +247,16 @@ public class Webhook2Flow_Test{
         Webhook_Payload_Validation__mdt testPointDefinitionMDT = new Webhook_Payload_Validation__mdt(
             DeveloperName = 'Webhook2Flow_Deploy_Test',
             MasterLabel = 'Webhook2Flow_Deploy_Test',
-            Custom_Object_Prefix__c = 'wh2fTest_',
+            Custom_Object_Prefix__c = 'slack_',
             Description__c = 'test Description',
             Header_Signature_Parameter__c = METADATA_SIGN_PARAM,
             Host__c = URL.getSalesforceBaseUrl().toExternalForm().replaceFirst('https://',''),
             Payload_Concatenation__c = METADATA_HASH_PREFIX,
-            Save_Logs__c = false,
+            Save_Logs__c = true,
             Secret__c = METADATA_SIGN_SECRET,				// a randomly generated sequence - not a key to anything
             Signature_Prefix__c = METADATA_SIGN_PREFIX,
             Signing_Algorithm__c = METADATA_SIGN_ALGORITH,
-            Site_Name__c = 'slack_'
+            Site_Name__c = 'noSite'
         );
         return  testPointDefinitionMDT;
     }
