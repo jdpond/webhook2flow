@@ -22,10 +22,13 @@ global class WebHookListener {
     private static void doAll(){
         RestRequest req = RestContext.request;
         RestResponse resp = RestContext.response;
-
-        try {
+		WebhookInboundEvent__mdt evtConfig;
+		Log hookLog = new Log('WebHookListener',req, resp);
+		hookLog.startTimer();
+		try {
+	
 			//get the event 
-			WebhookInboundEvent__mdt evtConfig = getEventConfig(req);
+			evtConfig = getEventConfig(req);
 
 			//TODO: write VR on MDT to ensure integrity
 
@@ -36,29 +39,46 @@ global class WebHookListener {
 				throw new WebHookListenerException('INVALID_SIGNATURE');
 			}
 
-			resp = handler.execute(evtConfig, req);
+			try {	
+				resp = handler.execute(evtConfig, req);
+			} 
+			catch(Exception ex) {
+				throw new WebHookListenerException('HANDLER_EXECUTION_EXCEPTION', ex);
+			}
+
 			for ( string hkey : resp.headers.keySet()) {
 				RestContext.response.addHeader(hkey, resp.headers.get(hkey));
 			}
 			RestContext.response.responseBody = resp.responseBody;
-			RestContext.response.statusCode = resp.statusCode;
+			RestContext.response.statusCode = resp.statusCode;			
 
-			//RestContext.response.responseBody = Blob.valueOf(JSON.serializePretty(evtConfig));
-        }
-        catch(Exception ex) {
-			setErrorResponse(ex.getMessage());
-        }
-        finally {
-			Log l = new Log('WebHookListener',req, resp);
-			Log.addLog(l);
-			Log.save();
-        }
+		}
+		catch(WebHookListenerException ex) {
+			hookLog.append(ex);
+			setErrorResponse(ex.getMessageOverride());
+		}
+		catch(Exception ex) {
+			//should not get here....
+			hookLog.append(ex);
+			RestContext.response.statusCode=500;
+			RestContext.response.addHeader('Content-Type', 'application/json');
+			RestContext.response.responseBody = Blob.valueOf(JSON.serializePretty(new ErrorResponse('INTERNAL_ERROR')));
+		}
+		finally {
+			if (evtConfig.Save_Logs__c || hookLog.severity=='ERROR') {
+				hookLog.append(req, resp);
+				Log.addLog(hookLog);
+				Log.save();
+			}
+		}
+
     }
 
 
 	private static WebhookInboundEvent__mdt getEventConfig(RestRequest req) {
 
-		//if (if(Test.isRunningTest()) config = Webhook2Flow_Test.getWebhook_Payload_Validation();)
+		if(Test.isRunningTest()) 
+			return  WebHookListener_Test.getWebhookConfig();
 		//get event
 		string eventName = req.requestURI.substring(req.requestURI.lastIndexOf('/')+1);
 		eventName = eventName.split('\\?')[0].split('&')[0];
@@ -75,12 +95,16 @@ global class WebHookListener {
 		return (WebHookProcessor.IWebHookInboundHandler) Type.forName(config.Agent__c).newInstance(); 
 	}
 
-	
 	global class WebHookListenerException extends Exception {
 
-
+		global string getMessageOverride() {
+			switch on (this.getMessage()){  
+				when 'HANDLER_EXECUTION_EXCEPTION' { return Label.WH_HANDLER_EXECUTION_EXCEPTION; }
+				//set public message overrides here...  
+				when else { return this.getMessage(); }
+			}
+		}
 	}
-
 
 
 	private static void setErrorResponse(string err) {

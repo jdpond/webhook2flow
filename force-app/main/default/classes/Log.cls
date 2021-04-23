@@ -11,11 +11,11 @@
 global with sharing class Log {
 	
 	//public static final string CalloutVerbosityLevel = Settings.getSetting('CalloutLog');
-	
-	private Log__c record {get;  set;}
-	
-	@TestVisible private static LIST<Log__c> queue = new LIST<Log__c>();
 
+	//properties
+
+	private Log__c record {get;  set;}
+	@TestVisible private static LIST<Log__c> queue = new LIST<Log__c>();
 	public string logType { get { return record.type__c; } set { record.type__c=value; }}
 	public string message { get { return record.Message__c; } set { record.Message__c=value; }}
 	public string source { get { return record.source__c; } set { record.source__c=value; }}
@@ -25,11 +25,84 @@ global with sharing class Log {
 	public string response { get { return record.Response__c; } set { record.Response__c=value; }}
 	
 
-	private static dateTime timerStart=null;
-    public static void startTimer() {
-        timerStart=dateTime.now();
-    }
+	//constructors
 
+	/*
+	public Log(string source, REST.RestRequest req, REST.RestResponse res) {
+		this('REST_Callout',source,String.valueOf(req), String.valueOf(res)+'\n'+res.getBody());
+	}
+	*/
+
+	public Log(string source, exception ex) {		
+		this(source, null, ex);
+	}
+	public Log(string source, object msg) {		
+		this('Message',source,null,String.valueOf(msg));
+	}
+
+	public Log(string source, System.RestRequest req, System.RestResponse resp) { 
+		this.record = new Log__c();
+		this.record.Type__c = 'HTTP_Callin';
+        this.record.Source__c = source;
+
+		this.append(req, resp);
+	}
+
+	public Log(string source, HttpRequest req, HttpResponse resp) {
+		this(source,httpRequest2RestRequest(req), httpResponse2RestResponse(resp));
+	}
+	
+	public Log(string source, string req, exception ex) {
+		this('Exception',source,req,String.valueOf(ex)+'\n'+ex.getMessage());
+
+	}
+	public Log(string typ, string source, string req, string resp) {
+		this(typ,source,null,req, resp);
+	}
+	public Log(string typ, string source, string host, string req, string resp) {
+		Database.DMLOptions dmo = new Database.DMLOptions();
+		dmo.allowFieldTruncation = true;
+		Log__c l= new Log__c(type__c=typ, source__c=source, host__c=host, Request__c=req, Response__c=resp);
+		l.setOptions(dmo);
+		record=l;
+	}
+
+	//Append to an open log
+
+	public void append(Exception ex) {
+        if (ex!=null) {
+            string msg = ex.getMessage() + ' - ' + ex.getStackTraceString();
+			Exception c = ex.getCause();
+			if (c!=null) {
+				msg+='\n\nCause: '+ c.getMessage() + ' - ' + c.getStackTraceString();
+			} 
+            this.record.ErrorMessage__c = msg;
+			this.severity='ERROR';
+        }
+	}
+	public void append(HttpRequest req, HttpResponse resp) {
+		append(httpRequest2RestRequest(req), httpResponse2RestResponse(resp));
+	}
+	public void append(System.RestRequest req, System.RestResponse resp) {
+		if (req!=null) {
+			this.record.Host__c = req.requestURI.substringBefore('/');
+            this.record.HttpMethod__c = req.httpMethod;
+            this.record.RequestURI__c = req.requestURI;
+            this.record.Request__c = req.requestBody?.toString();
+            this.record.RequestHeaders__c = String.valueOf(req.headers);
+        }
+        if (resp!=null) {
+            this.record.StatusCode__c = resp.statusCode;
+			this.record.ResponseHeaders__c = String.valueOf(resp.headers);
+            this.record.Response__c = resp.responseBody?.toString();
+        }
+	}
+
+
+	public dateTime timerStart {get; private set;}
+    public void startTimer() {
+        this.timerStart=dateTime.now();
+    }
 
 	public static void addMessage(string source, string msg) {
 		string typ = 'Message';
@@ -85,9 +158,11 @@ global with sharing class Log {
 		addLog(new Log('Message',source,null,String.valueOf(resp)));
 	}
 	
-
 	public static void addLog(Log l) {
-	
+		if (l.timerStart!=null) {
+            l.record.CallDuration__c = datetime.now().getTime() - l.timerStart.getTime();
+            l.timerStart=null;
+        }
 		addLog(l.record);
 	}
 	
@@ -134,75 +209,10 @@ global with sharing class Log {
 		}	
 	}
 
-	public void append(Exception ex) {
-        if (ex!=null) {
-            string msg = ex.getMessage() + ' - ' + ex.getStackTraceString();    
-            this.record.ErrorMessage__c = msg;
-        }
-	}
-	public void append(HttpRequest req, HttpResponse resp) {
-		append(httpRequest2RestRequest(req), httpResponse2RestResponse(resp));
-	}
-	public void append(System.RestRequest req, System.RestResponse resp) {
-		if (req!=null) {
-			this.record.Host__c = req.requestURI.substringBefore('/');
-            this.record.HttpMethod__c = req.httpMethod;
-            this.record.RequestURI__c = req.requestURI;
-            this.record.Request__c = req.requestBody?.toString();
-            this.record.RequestHeaders__c = String.valueOf(req.headers);
-        }
-        if (resp!=null) {
-            this.record.StatusCode__c = resp.statusCode;
-			this.record.ResponseHeaders__c = String.valueOf(resp.headers);
-            this.record.Response__c = resp.responseBody?.toString();
-        }
-	}
-
-	//constructors
-
-	/*
-	public Log(string source, REST.RestRequest req, REST.RestResponse res) {
-		this('REST_Callout',source,String.valueOf(req), String.valueOf(res)+'\n'+res.getBody());
-	}
-	*/
-
-    public Log(string source, System.RestRequest req, System.RestResponse resp) { 
-		this.record = new Log__c();
-		this.record.Type__c = 'HTTP_Callin';
-        this.record.Source__c = source;
-
-		this.append(req, resp);
-        if (timerStart!=null) {
-            this.record.CallDuration__c = datetime.now().getTime() - timerStart.getTime();
-            timerStart=null;
-        }
-	}
 
 
-	public Log(string source, HttpRequest req, HttpResponse resp) {
-		this(source,httpRequest2RestRequest(req), httpResponse2RestResponse(resp));
-	}
-	
-	public Log(string source, exception ex) {		
-		this(source, null, ex);
-	}
-	public Log(string source, object msg) {		
-		this('Message',source,null,String.valueOf(msg));
-	}
-	public Log(string source, string req, exception ex) {
-		this('Exception',source,req,String.valueOf(ex)+'\n'+ex.getMessage());
-	}
-	public Log(string typ, string source, string req, string resp) {
-		this(typ,source,null,req, resp);
-	}
-	public Log(string typ, string source, string host, string req, string resp) {
-		Database.DMLOptions dmo = new Database.DMLOptions();
-		dmo.allowFieldTruncation = true;
-		Log__c l= new Log__c(type__c=typ, source__c=source, host__c=host, Request__c=req, Response__c=resp);
-		l.setOptions(dmo);
-		record=l;
-	}
-	
+
+    
 	
     private static System.RestRequest httpRequest2RestRequest(HttpRequest request) {
         System.RestRequest restRequest = new System.RestRequest();

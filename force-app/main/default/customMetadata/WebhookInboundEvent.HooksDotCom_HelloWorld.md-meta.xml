@@ -16,7 +16,7 @@
     </values>
     <values>
         <field>Host__c</field>
-        <value xsi:type="xsd:string">sandbox-wh-developer-edition.cs77.force.com</value>
+        <value xsi:type="xsd:string">sandbox-wh1-developer-edition.cs79.force.com</value>
     </values>
     <values>
         <field>Payload_Concatenation__c</field>

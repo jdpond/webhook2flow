@@ -455,9 +455,9 @@ global without sharing class Webhook2Flow {                         // without s
                 string webHookFlowName = endPointDefinitionMDT.Actor__c;
                 List<String> flowNames = new List<String>{webHookFlowName};
                 String[] requestTypes = webHookFlowName.split('_');
-                
+
                 // end of payload validation
-                if (requestTypes[requestTypes.size()-1] != whichHttp) flowNames.add(webHookFlowName+'_'+whichHttp);
+                //if (requestTypes[requestTypes.size()-1] != whichHttp) flowNames.add(webHookFlowName+'__'+whichHttp);
                 string flowVersion = paramsMap.get(FLOW_VERSIONID_PARAM) != null? String.escapeSingleQuotes(paramsMap.get(FLOW_VERSIONID_PARAM)):null;
                 FlowDefinitionView[] allViews = [SELECT ActiveVersionId,ApiName,Builder,Description,DurableId,Id,InstalledPackageName,IsActive,IsOutOfDate,IsSwingFlow,IsTemplate,Label,LastModifiedBy,LastModifiedDate,LatestVersionId,ManageableState,NamespacePrefix,ProcessType,TriggerType FROM FlowDefinitionView where ApiName in :flowNames ORDER BY ApiName ASC];
                 Integer whichFlowNdx;
@@ -497,7 +497,7 @@ global without sharing class Webhook2Flow {                         // without s
                                         try {flowParams.put(thisInput.ApiName, EncodingUtil.urlDecode(paramsMap.get(thisParam),'UTF-8'));}
                                         catch(Exception e){foundErrors.add(setupError(e, thisParam));}
                                     }
-                                    when 'Number' {
+                                    when 'Number' { //, 'Currency', 'Integer', 'Decimal' {
                                         try {flowParams.put(thisInput.ApiName, Decimal.valueOf(EncodingUtil.urlDecode(paramsMap.get(thisParam),'UTF-8')));}
                                         catch(Exception e){foundErrors.add(setupError(e, thisParam));}
                                     }
@@ -555,7 +555,7 @@ global without sharing class Webhook2Flow {                         // without s
                                             }
                                             if(thisCollection.size() >0) flowParams.put(thisInput.ApiName, thisCollection);
                                         }
-                                        when 'Number'{       // number
+                                        when 'Number' { //}, 'Currency', 'Integer', 'Decimal' {       // number
                                             List<Double> thisCollection = new List<Double>();
                                             while (parser.nextToken() != null & parser.getCurrentToken() != JSONToken.END_ARRAY) {
                                                 try{thisCollection.add(parser.getDoubleValue());}
@@ -693,6 +693,7 @@ global without sharing class Webhook2Flow {                         // without s
                             RestContext.response.statusCode = (foundErrors.size() > 0) ? BAD_RESPONSE_DEFAULT :  GOOD_RESPONSE_DEFAULT;
                         if( foundErrors.size() > 0 ){
                             retJSON.add('"webhook2flowErrors" : ' + JSON.serialize(foundErrors));
+                            resp.statusCode = BAD_RESPONSE_DEFAULT;
                         }
                         List<FlowVariableView> outputParams = new List<FlowVariableView> ();
                         outputParams.addall(outputParamMap.values());
@@ -715,6 +716,8 @@ global without sharing class Webhook2Flow {                         // without s
         
         
                     if (retJSON.size() > 0) {
+                        if (resp.statusCode==null)
+                            resp.statusCode = GOOD_RESPONSE_DEFAULT;
                         resp.responseBody = Blob.valueof('{'+string.join(retJSON,',')+'}'); 
                     }
                 }
