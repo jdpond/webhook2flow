@@ -2,7 +2,7 @@
  * @description       : 
  * @author            : Tom Snyder <tom@3ddd.com>
  * @group             : 
- * @last modified on  : 2021-04-22
+ * @last modified on  : 2021-04-23
  * @last modified by  : Tom Snyder <tom@3ddd.com>
  * Modifications Log 
  * Ver   Date         Author                      Modification
@@ -20,6 +20,7 @@ global with sharing class WebHookProcessor {
             return verifyDigestSignature(config, req);
         }
         global virtual RestResponse execute(WebhookInboundEvent__mdt config, RestRequest req) {
+            integer divby0 = 1/0;
             throw new WebHookListener.WebHookListenerException('HANDLER_NOT_IMPLEMENTED');
         }
     }
@@ -33,11 +34,11 @@ global with sharing class WebHookProcessor {
     }
 
 
-    global class WebHook2Apex extends WebHookInboundHandler {
+    global class WebHook2Apex implements IWebHookInboundHandler  {
            
-        global override boolean verify(WebhookInboundEvent__mdt config, RestRequest req) {
+        global boolean verify(WebhookInboundEvent__mdt config, RestRequest req) {
             try {
-                IWebHookInboundHandler customImpl = (IWebHookInboundHandler) Type.forName(config.Agent__c).newInstance(); 
+                IWebHookInboundHandler customImpl = (IWebHookInboundHandler) Type.forName(config.Actor__c).newInstance(); 
                 return customImpl.verify(config, req);
             }
             catch(Exception ex) {
@@ -45,9 +46,9 @@ global with sharing class WebHookProcessor {
             }
         }
 
-        global override System.RestResponse execute(WebhookInboundEvent__mdt config, RestRequest req) {
+        global System.RestResponse execute(WebhookInboundEvent__mdt config, RestRequest req) {
             try {
-                IWebHookInboundHandler customImpl = (IWebHookInboundHandler) Type.forName(config.Agent__c).newInstance(); 
+                IWebHookInboundHandler customImpl = (IWebHookInboundHandler) Type.forName(config.Actor__c).newInstance(); 
                 return customImpl.execute(config, req);
             }
             catch(Exception ex) {

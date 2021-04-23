@@ -1,18 +1,19 @@
 /**
- * @description       : Webhook2Flow_Test - deployment test class for Webhook2Flow_Test
- * @author            : Jack D. Pond
+ * @description       : 
+ * @author            : Tom Snyder <tom@3ddd.com>
  * @group             : 
  * @last modified on  : 2021-04-23
  * @last modified by  : Tom Snyder <tom@3ddd.com>
  * Modifications Log 
- * Ver   Date         Author         Modification
- * 1.0   03-24-2021   Jack D. Pond   Initial Version
- * 
+ * Ver   Date         Author                      Modification
+ * 1.0   2021-04-23   Tom Snyder <tom@3ddd.com>   Initial Version
 **/
 
+
 @isTest
-public class Webhook2Flow_Test{
-	//https://[YourOrg].my.salesforce.com/services/apexrest/Webhook2Flow/[your_flow_API_Name]?parameter1=this+param+value&parameter2=that+param2+value...
+public class WebHookListener_Test {
+    
+	//https://[YourOrg].my.salesforce.com/services/apexrest/WebHookListener/[your_flow_API_Name]?parameter1=this+param+value&parameter2=that+param2+value...
 	private Static Final String HEADER_PARM_TIMENAME = 'X_Test_Time_Stamp';
 	private Static Final String METADATA_SIGN_PARAM = 'X_Test_Signature';
 	private Static Final String HEADER_PARM_TIMEVALUE = string.valueOfGmt(System.now());
@@ -21,9 +22,9 @@ public class Webhook2Flow_Test{
 	private Static Final String METADATA_SIGN_PREFIX = 'wh2f=';
 	private Static Final String METADATA_SIGN_ALGORITH = 'hmacSHA256';
 	private Static Final String METADATA_SIGN_SECRET = '8vkiK0qdBe7fxjDBuF2A';  // random value - doesn't correspond to anything
-	private Static Final String URIPART_TO_CLASS = '/services/apexrest/Webhook2Flow/';
-	private Static Final String URIPART_FLOWNAME = 'Webhook2Flow_Deploy_Test';
-	private Static Final String URIPART_FLOWNAME_DEMO = 'Webhook2Flow_Deploy_Test';
+	private Static Final String URIPART_TO_CLASS = '/services/apexrest/WebHookListener/';
+	private Static Final String URIPART_FLOWNAME = 'WebHookListener_Deploy_Test';
+	private Static Final String URIPART_FLOWNAME_DEMO = 'WebHookListener_Deploy_Test';
 	private Static Final String URIPART_GOOD_PARAMS = '?testParamNumber=0'+
         											  	'&testParamText=thisString'+
         												'&testParamBoolean=true'+
@@ -39,8 +40,8 @@ public class Webhook2Flow_Test{
     private Static Final String BODY_JSON = 
 	'{' + 
 	'    "generateError": true,' + 
-	'    "Subject": "2021-01-25 Test Confirmation for Webhook2Flow_Test",' + 
-	'    "Description": "2021-01-25 From Postman to Webhook2Flow_Test.",' + 
+	'    "Subject": "2021-01-25 Test Confirmation for WebHookListener_Test",' + 
+	'    "Description": "2021-01-25 From Postman to WebHookListener_Test.",' + 
 	'    "SuppliedName": "Le Grand Frommage",' + 
 	'    "SuppliedPhone": "2025551212",' + 
 	'    "Submission_Date_And_Time__c": "2021-01-29T12:26:00.00Z",' + 
@@ -95,16 +96,16 @@ public class Webhook2Flow_Test{
 	'        "2021-03-26T13:27:00.00Z",' + 
 	'        "2021-03-27T14:28:00.00Z"' + 
 	'    ],' + 
-	'    "currencyList" : [' + 
-	'        12.34,' + 
-	'        56.78,' + 
-	'        90.12' + 
-	'    ],' + 
+	//'    "currencyList" : [' + 
+	//'        12.34,' + 
+	//'        56.78,' + 
+	//'        90.12' + 
+	//'    ],' + 
 	'    "testParamDate": "2021-01-29",' + 
 	'    "testParamDatetime": "2021-01-29T12:26:00.00Z",' + 
 	'    "testParamBoolean": true,' + 
 	'    "testParamNumber": 101,' + 
-	'    "testParamCurrency": 12.34,' + 
+	//'    "testParamCurrency": 12.34,' + 
 	'	 "testApexDefined": {'+
 	'        "type" : "message",' + 
 	'        "channel" : "D024BE91L",' + 
@@ -245,8 +246,10 @@ public class Webhook2Flow_Test{
 	@testSetup static void setup(){
 	}
 
-    public static Webhook_Payload_Validation__mdt getWebhook_Payload_Validation(){
-        Webhook_Payload_Validation__mdt testPointDefinitionMDT = new Webhook_Payload_Validation__mdt(
+    public static WebhookInboundEvent__mdt getWebhookConfig(){
+        WebhookInboundEvent__mdt config = new WebhookInboundEvent__mdt (
+            Agent__c = 'Webhook2Flow.WebHook2FlowHandler',
+            Actor__c = 'Webhook2Flow_Deploy_Test',
             DeveloperName = 'Webhook2Flow_Deploy_Test',
             MasterLabel = 'Webhook2Flow_Deploy_Test',
             Description__c = 'test Description',
@@ -257,9 +260,9 @@ public class Webhook2Flow_Test{
             Secret__c = METADATA_SIGN_SECRET,				// a randomly generated sequence - not a key to anything
             Signature_Prefix__c = METADATA_SIGN_PREFIX,
             Signing_Algorithm__c = METADATA_SIGN_ALGORITH,
-            Site_Name__c = 'noSite'
+            Site_Name__c = 'Webhook2Flow_Deploy_Test'
         );
-        return  testPointDefinitionMDT;
+        return  config;
     }
 
 
@@ -288,9 +291,10 @@ public class Webhook2Flow_Test{
             request.addParameter('testParamDatetime', '2021-01-29T12:26:00.00Z');
             RestContext.request = request;
             RestContext.response = resp;
-            Webhook2Flow.doPost();
+            WebHookListener.doPost();
             system.debug('RestContext.response.statusCode: '+RestContext.response.statusCode);
             system.debug('RestContext.response: '+RestContext.response.responseBody.toString());
+            system.assert(RestContext.response.statusCode==200);
         }
 	}
 
@@ -317,9 +321,10 @@ public class Webhook2Flow_Test{
             request.addParameter('testParamDatetime', 'BadDateTime');
             RestContext.request = request;
             RestContext.response = resp;
-            Webhook2Flow.doPost();
+            WebHookListener.doPost();
             system.debug('RestContext.response.statusCode: '+RestContext.response.statusCode);
             system.debug('RestContext.response: '+RestContext.response.responseBody.toString());
+            system.assert(RestContext.response.statusCode==400);
         }
 	}
 	@isTest static void t03_put_coverage() {
@@ -339,7 +344,7 @@ public class Webhook2Flow_Test{
                         );
             RestContext.request = request;
             RestContext.response = resp;
-            Webhook2Flow.doPut();
+            WebHookListener.doPut();
             system.debug('RestContext.response.statusCode: '+RestContext.response.statusCode);
             system.debug('RestContext.response: '+RestContext.response.responseBody.toString());
         }
@@ -361,7 +366,7 @@ public class Webhook2Flow_Test{
                         );
             RestContext.request = request;
             RestContext.response = resp;
-            Webhook2Flow.doDelete();
+            WebHookListener.doDelete();
             system.debug('RestContext.response.statusCode: '+RestContext.response.statusCode);
             system.debug('RestContext.response: '+RestContext.response.responseBody.toString());
         }
@@ -383,7 +388,7 @@ public class Webhook2Flow_Test{
                         );
             RestContext.request = request;
             RestContext.response = resp;
-            Webhook2Flow.doGet();
+            WebHookListener.doGet();
             system.debug('RestContext.response.statusCode: '+RestContext.response.statusCode);
             system.debug('RestContext.response: '+RestContext.response.responseBody.toString());
         }
@@ -405,7 +410,7 @@ public class Webhook2Flow_Test{
                         );
             RestContext.request = request;
             RestContext.response = resp;
-            Webhook2Flow.doPatch();
+            WebHookListener.doPatch();
             system.debug('RestContext.response.statusCode: '+RestContext.response.statusCode);
             system.debug('RestContext.response: '+RestContext.response.responseBody.toString());
         }
@@ -427,7 +432,7 @@ public class Webhook2Flow_Test{
 		);
         RestContext.request = request;
         RestContext.response = resp;
-		Webhook2Flow.doPost();
+		WebHookListener.doPost();
         List<Contact> coList = [Select Id, Name from Contact];
         request = new RestRequest();
         resp = new RestResponse();
@@ -437,7 +442,7 @@ public class Webhook2Flow_Test{
         request.requestBody = Blob.valueOf(BODY_JSON_DEMO);
         RestContext.request = request;
         RestContext.response = resp;
-		Webhook2Flow.doPost();
+		WebHookListener.doPost();
         system.debug('RestContext.response.statusCode: '+RestContext.response.statusCode);
         system.debug('RestContext.response: '+RestContext.response.responseBody.toString());
         system.debug('Contact List: ' + coList);
