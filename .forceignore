@@ -10,3 +10,16 @@ package.xml
 
 # LWC Jest
 **/__tests__/**
+
+#ignore Profiles for push,deploy,status
+force-app/main/default/profiles/Marketing Profile.profile-meta.xml 
+
+#ignore Profiles for pull,retrieve,status
+Custom%3A Marketing Profile.profile 
+Custom%3A Support Profile.profile
+Custom%3A Sales Profile.profile
+**/profiles/
+**/staticresources/
+**/pages/
+**/components/
+**/sites/

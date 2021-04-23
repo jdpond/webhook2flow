@@ -1,0 +1,13 @@
+<!--
+  @description       : 
+  @author            : Tom Snyder <tom@3ddd.com>
+  @group             : 
+  @last modified on  : 2021-04-22
+  @last modified by  : Tom Snyder <tom@3ddd.com>
+  Modifications Log 
+  Ver   Date         Author                      Modification
+  1.0   2021-04-22   Tom Snyder <tom@3ddd.com>   Initial Version
+-->
+<apex:page showHeader="false" title="{!$Label.site.in_maintenance}" cache="false">
+
+</apex:page>
