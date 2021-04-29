@@ -2,16 +2,15 @@
  * @description       : Webhook2Flow
  * @author            : Jack D. Pond
  * @group             : PSITex, LLC
- * @last modified on  : 2021-04-23
- * @last modified by  : Tom Snyder <tom@3ddd.com>
+ * @last modified on  : 04-29-2021
+ * @last modified by  : Jack D. Pond
  * Modifications Log 
  * Ver   Date         Author         Modification
  * 1.0   01-01-2021   Jack D. Pond   Initial Version
  * To do:
  * 1. Recursion
- * 2. Security and encodiing
- * 3. Null values
- * 4. Log Requests and Responses (JSON.stringify)
+ * 2. Null values
+ *
  * https://developer.salesforce.com/blogs/pat-patterson/2011/08/quick-tip-pretty-print-json-in-the-browser.html
  * https://psitexllc.quip.com/VoMrASkiH7PO/Enabling-Webhooks-to-Launch-Flows
  * https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/errorcodes.htm
@@ -28,9 +27,12 @@ global without sharing class Webhook2Flow {                         // without s
     static final Integer GOOD_RESPONSE_DEFAULT = 200 ; // Normal Response
     static final String HTTP_RESPONSE_CONTENT_TYPE = 'application/json' ; // Normal Response
     static final String INVALID_PARAMETER_TYPE = 'DATATYPE_INVALID';
-
     static final String MSG_COLLECTION_NOT_SUPPORTED = '- Collection is not a supported parameter type.';
     static final String MSG_TYPE_NOT_SUPPORTED = ' is not a supported parameter type.';
+    static final String JSON_PARAMETER_OBJECTYPE = '\"ObjectType\"';
+    static final String DOUBLE_QUOTE = '\"';
+    static final String EXTERNAL_SERVICE_PREFIX = 'ExternalService';
+
 
     @HttpDelete
     global static void doDelete() {
@@ -107,8 +109,6 @@ global without sharing class Webhook2Flow {                         // without s
             Map<String, FlowVariableView> inputParamMap = new Map<String, FlowVariableView>();
             Map<String, String> customObjectMap = new Map<String, String>();
             for (FlowVariableView thisVariable : allParams){
-                string internalParamName = thisVariable.ApiName;
-
                 if (thisVariable.IsInput) inputParamMap.put(thisVariable.ApiName,thisVariable);
                 if (thisVariable.IsOutput){  // if this is an error object (FlowExecutionErrorEvent) put it into the error stack, otherwise, standard output
                     if (thisVariable.ObjectType == FLOW_ERROR_MESSAGE_OBJECT){
@@ -228,9 +228,7 @@ global without sharing class Webhook2Flow {                         // without s
                                 }
                                 when 'SObject'{     // object
                                     List<sObject> thisCollection = new List<sObject>();
-                                    Integer tstCnt = 0;
                                     while (parser.nextToken() != null & parser.getCurrentToken() != JSONToken.END_ARRAY) {
-//                                        retJSON.add('"'+thisInput.ApiName+tstcnt++ +'" : '+JSON.serialize(parser.getCurrentToken())); // This is a debug statement
                                         if (parser.getCurrentToken() == JSONToken.START_OBJECT) {
                                             try{thisCollection.add((sObject)parser.readValueAs(Type.forName(thisInput.ObjectType)));}
                                 			catch(Exception e){foundErrors.add(setupError(e, thisInput.ApiName));}
@@ -240,17 +238,14 @@ global without sharing class Webhook2Flow {                         // without s
                                 }
                                 when 'Apex'{     // object
                                     List<Object> thisCollection = new List<Object>();
-                                    Integer tstCnt = 0;
                                     while (parser.nextToken() != null & parser.getCurrentToken() != JSONToken.END_ARRAY) {
-//                                        retJSON.add('"'+thisInput.ApiName+tstcnt++ +'" : '+JSON.serialize(parser.getCurrentToken())); // This is a debug statement
                                         if (parser.getCurrentToken() == JSONToken.START_OBJECT) {
 //                                            (Object) thisInstance = (Object) dynamicApexType.newInstance();
                                             try{thisCollection.add((Object)parser.readValueAs(Type.forName(thisInput.ObjectType)));}
                                 			catch(Exception e){foundErrors.add(setupError(e, thisInput.ApiName));}
                                         }
                                     }
-                                    String internalObjectAPIName = customObjectMap.get(thisInput.ApiName) != null ? customObjectMap.get(thisInput.ApiName) : thisInput.ApiName;
-                                    if(thisCollection.size() >0) flowParams.put(internalObjectAPIName, thisCollection);
+                                    if(thisCollection.size() >0) flowParams.put(thisInput.ApiName, thisCollection);
                                 }
                                 when else {         //  additional types currently unsupported
                                     foundErrors.add( new FlowExecutionErrorEvent (
@@ -292,12 +287,38 @@ global without sharing class Webhook2Flow {                         // without s
                                     try{flowParams.put(thisInput.ApiName, parser.getDateValue());}
                                     catch(Exception e){foundErrors.add(setupError(e, thisInput.ApiName));}
                                 }
-                                when 'SObject','Apex' {     // object
+                                when 'SObject' {     // object
                                     if (parser.getCurrentToken() == JSONToken.START_OBJECT) {
 //                                        retJSON.add('"'+thisInput.ApiName+ '00" : '+JSON.serialize(parser.getCurrentToken())); // This is a debug statement
-                                        String internalObjectAPIName = customObjectMap.get(thisInput.ApiName) != null ? customObjectMap.get(thisInput.ApiName) : thisInput.ApiName;
-                                        try{flowParams.put(internalObjectAPIName , parser.readValueAs(Type.forName(thisInput.ObjectType)));}
-                                    	catch(Exception e){foundErrors.add(setupError(e, internalObjectAPIName));}
+                                        try{flowParams.put(thisInput.ApiName , parser.readValueAs(Type.forName(thisInput.ObjectType)));}
+                                    	catch(Exception e){foundErrors.add(setupError(e, thisInput.ApiName));}
+                                    }
+                                }
+                                when 'Apex' {     // apex-defined object
+                                    if (parser.getCurrentToken() == JSONToken.START_OBJECT) {
+                                        string thisObjectType = getObjectType(thisInput.ObjectType,thisInput.Description);
+
+/*
+                                        
+                                        try {
+                                            
+                                            ExternalService.SlackDemo_event thisAppEvent;
+                                            thisAppEvent= (ExternalService.SlackDemo_event) Type.forName('ExternalService','SlackDemo_event').newInstance();
+                                            thisAppEvent.text = 'jibber jabber jibber jabber';
+                                            system.debug(thisAppEvent.text);
+                                            String thisJSON = JSON.serializePretty(thisAppEvent);
+                                            system.debug(thisJSON);
+                                        }
+//                                        catch(Exception e){foundErrors.add(setupError(e, thisInput.ApiName + '('+thisObjectType+')'));}
+                                        catch(Exception e){}
+*/
+                                        if (thisObjectType.contains(EXTERNAL_SERVICE_PREFIX+'__')){
+                                            try{flowParams.put(thisInput.ApiName , parser.readValueAs(Type.forName(EXTERNAL_SERVICE_PREFIX,thisObjectType.replace(EXTERNAL_SERVICE_PREFIX+'__',''))));}
+                                            catch(Exception e){foundErrors.add(setupError(e, thisInput.ApiName+'('+EXTERNAL_SERVICE_PREFIX+','+thisObjectType.replace(EXTERNAL_SERVICE_PREFIX+'__','')+')'));}
+                                        } else {
+                                            try{flowParams.put(thisInput.ApiName , parser.readValueAs(Type.forName(thisObjectType)));}
+                                            catch(Exception e){foundErrors.add(setupError(e, thisInput.ApiName + '('+thisObjectType+')'));}
+                                        }
                                     }
                                 }
                                 when else {         //  additional types currently unsupported
@@ -349,7 +370,7 @@ global without sharing class Webhook2Flow {                         // without s
     private static FlowExecutionErrorEvent setupError(Exception e, String relatedTo){
         return(new FlowExecutionErrorEvent(
                 ErrorId = e.getTypeName(),
-                ErrorMessage = 'RelatedTo: ' + relatedTo + ' Line: ' + e.getLineNumber() + ' Msg: ' + e.getMessage()
+                ErrorMessage = 'RelatedTo: ' + relatedTo + ' Stack: ' + e.getStackTraceString() + ' Msg: ' + e.getMessage()
             )
         );
     }
@@ -404,27 +425,34 @@ global without sharing class Webhook2Flow {                         // without s
             statusCode__c = RestContext.response.statusCode,
             headers__c = '{' + String.join(headers,',') + '}',
             params__c = '{' + String.join(uriparms,',') + '}',
-            responseBody__c = '{' + (RestContext.response.responseBody == null ? '' : RestContext.response.responseBody.toString()) + '}',
-            requestBody__c = '{' + (RestContext.request.requestBody == null ? '' : RestContext.request.requestBody.toString()) + '}'
+            responseBody__c = (RestContext.response.responseBody == null ? '' : RestContext.response.responseBody.toString()),
+            requestBody__c = (RestContext.request.requestBody == null ? '' : RestContext.request.requestBody.toString()) 
         );
+        Database.DMLOptions dmo = new Database.DMLOptions();
+		dmo.allowFieldTruncation = true;
+		thisLog.setOptions(dmo);
+
         insert thisLog;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    private static String getObjectType(String inObjectType, String inDescription){
+        String retObjectType=inObjectType;
+        if (inObjectType == null){
+            if (inDescription != null && inDescription.length() > 0 && inDescription.contains(JSON_PARAMETER_OBJECTYPE)){
+                retObjectType = inDescription.substringAfter(JSON_PARAMETER_OBJECTYPE).substringAfter(DOUBLE_QUOTE).substringbefore(DOUBLE_QUOTE);
+            }
+        }
+        return retObjectType;
+    }
+/**
+ * @description       : WebHookProcessor.WebHookInboundHandler
+ * @author            : Tom Snyder
+ * @group             : 
+ * @last modified on  : 04-29-2021
+ * @last modified by  : Jack D. Pond
+ * Modifications Log 
+ * Ver   Date         Author         Modification
+ * 1.0   01-01-2021   Jack D. Pond   Initial Version
+*/
     global class WebHook2FlowHandler extends WebHookProcessor.WebHookInboundHandler {
            
         global override System.RestResponse execute(WebhookInboundEvent__mdt endPointDefinitionMDT, RestRequest req) {
@@ -730,6 +758,5 @@ global without sharing class Webhook2Flow {                         // without s
     }
 
 
-
-
+    
 }

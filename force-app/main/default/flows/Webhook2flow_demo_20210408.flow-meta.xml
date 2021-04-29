@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Flow xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>50.0</apiVersion>
+    <apiVersion>51.0</apiVersion>
     <assignments>
         <name>Add_Error_to_Error_Collection</name>
         <label>Add Error to Error Collection</label>
@@ -67,6 +67,13 @@
             <operator>Assign</operator>
             <value>
                 <elementReference>LastName</elementReference>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>testString1</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>webhook2flow_test_apexclass.testString1</elementReference>
             </value>
         </assignmentItems>
         <connector>
@@ -207,6 +214,13 @@
         <objectType>Contact</objectType>
     </variables>
     <variables>
+        <name>testString1</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>true</isOutput>
+    </variables>
+    <variables>
         <name>updated_at</name>
         <dataType>DateTime</dataType>
         <isCollection>false</isCollection>
@@ -227,5 +241,13 @@
         <isCollection>false</isCollection>
         <isInput>true</isInput>
         <isOutput>false</isOutput>
+    </variables>
+    <variables>
+        <name>webhook2flow_test_apexclass</name>
+        <apexClass>webhook2flow_testobject</apexClass>
+        <dataType>Apex</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>true</isOutput>
     </variables>
 </Flow>

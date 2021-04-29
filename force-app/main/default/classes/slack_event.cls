@@ -2,7 +2,7 @@
  * @description       : 
  * @author            : Jack D. Pond
  * @group             : 
- * @last modified on  : 04-21-2021
+ * @last modified on  : 04-29-2021
  * @last modified by  : Jack D. Pond
  * Modifications Log 
  * Ver   Date         Author         Modification
@@ -21,6 +21,7 @@ public inherited sharing class slack_event{
     @invocableVariable(label='user' )
     @AuraEnabled
 	public String user;
+
     @invocableVariable(label='text' )
     @AuraEnabled
 	public String text;
@@ -29,4 +30,8 @@ public inherited sharing class slack_event{
     @AuraEnabled
 	public String ts;
 
+    @invocableVariable(label='team' )
+    @AuraEnabled
+	public String team;
+   
 }
