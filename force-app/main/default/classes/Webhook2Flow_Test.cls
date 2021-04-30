@@ -2,7 +2,7 @@
  * @description       : Webhook2Flow_Test - deployment test class for Webhook2Flow_Test
  * @author            : Jack D. Pond
  * @group             : 
- * @last modified on  : 04-22-2021
+ * @last modified on  : 04-29-2021
  * @last modified by  : Jack D. Pond
  * Modifications Log 
  * Ver   Date         Author         Modification
@@ -243,8 +243,10 @@ public class Webhook2Flow_Test{
 	@testSetup static void setup(){
 	}
 
-    public static Webhook_Payload_Validation__mdt getWebhook_Payload_Validation(){
-        Webhook_Payload_Validation__mdt testPointDefinitionMDT = new Webhook_Payload_Validation__mdt(
+    public static WebhookInboundEvent__mdt getWebhookConfig(){
+        WebhookInboundEvent__mdt testPointDefinitionMDT = new WebhookInboundEvent__mdt(
+            Agent__c = 'Webhook2Flow.WebHook2FlowHandler',
+            Actor__c = 'Webhook2Flow_Deploy_Test',
             DeveloperName = 'Webhook2Flow_Deploy_Test',
             MasterLabel = 'Webhook2Flow_Deploy_Test',
             Description__c = 'test Description',
@@ -285,7 +287,7 @@ public class Webhook2Flow_Test{
             request.addParameter('testParamDatetime', '2021-01-29T12:26:00.00Z');
             RestContext.request = request;
             RestContext.response = resp;
-            Webhook2Flow.doPost();
+            webhookListener.doPost();
             system.debug('RestContext.response.statusCode: '+RestContext.response.statusCode);
             system.debug('RestContext.response: '+RestContext.response.responseBody.toString());
         }
@@ -314,7 +316,7 @@ public class Webhook2Flow_Test{
             request.addParameter('testParamDatetime', 'BadDateTime');
             RestContext.request = request;
             RestContext.response = resp;
-            Webhook2Flow.doPost();
+            webhookListener.doPost();
             system.debug('RestContext.response.statusCode: '+RestContext.response.statusCode);
             system.debug('RestContext.response: '+RestContext.response.responseBody.toString());
         }
@@ -336,7 +338,7 @@ public class Webhook2Flow_Test{
                         );
             RestContext.request = request;
             RestContext.response = resp;
-            Webhook2Flow.doPut();
+            webhookListener.doPut();
             system.debug('RestContext.response.statusCode: '+RestContext.response.statusCode);
             system.debug('RestContext.response: '+RestContext.response.responseBody.toString());
         }
@@ -358,7 +360,7 @@ public class Webhook2Flow_Test{
                         );
             RestContext.request = request;
             RestContext.response = resp;
-            Webhook2Flow.doDelete();
+            webhookListener.doDelete();
             system.debug('RestContext.response.statusCode: '+RestContext.response.statusCode);
             system.debug('RestContext.response: '+RestContext.response.responseBody.toString());
         }
@@ -380,7 +382,7 @@ public class Webhook2Flow_Test{
                         );
             RestContext.request = request;
             RestContext.response = resp;
-            Webhook2Flow.doGet();
+            webhookListener.doGet();
             system.debug('RestContext.response.statusCode: '+RestContext.response.statusCode);
             system.debug('RestContext.response: '+RestContext.response.responseBody.toString());
         }
@@ -402,7 +404,7 @@ public class Webhook2Flow_Test{
                         );
             RestContext.request = request;
             RestContext.response = resp;
-            Webhook2Flow.doPatch();
+            webhookListener.doPatch();
             system.debug('RestContext.response.statusCode: '+RestContext.response.statusCode);
             system.debug('RestContext.response: '+RestContext.response.responseBody.toString());
         }
@@ -424,7 +426,7 @@ public class Webhook2Flow_Test{
 		);
         RestContext.request = request;
         RestContext.response = resp;
-		Webhook2Flow.doPost();
+		webhookListener.doPost();
         List<Contact> coList = [Select Id, Name from Contact];
         request = new RestRequest();
         resp = new RestResponse();
@@ -434,7 +436,7 @@ public class Webhook2Flow_Test{
         request.requestBody = Blob.valueOf(BODY_JSON_DEMO);
         RestContext.request = request;
         RestContext.response = resp;
-		Webhook2Flow.doPost();
+		webhookListener.doPost();
         system.debug('RestContext.response.statusCode: '+RestContext.response.statusCode);
         system.debug('RestContext.response: '+RestContext.response.responseBody.toString());
         system.debug('Contact List: ' + coList);
