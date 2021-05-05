@@ -2,8 +2,8 @@
  * @description       : 
  * @author            : Tom Snyder <tom@3ddd.com>
  * @group             : 
- * @last modified on  : 04-30-2021
- * @last modified by  : Jack D. Pond
+ * @last modified on  : 2021-04-30
+ * @last modified by  : Tom Snyder <tom@3ddd.com>
  * Modifications Log 
  * Ver   Date         Author                      Modification
  * 1.0   2021-04-22   Tom Snyder <tom@3ddd.com>   Initial Version
@@ -43,6 +43,7 @@ global class WebHookListener {
 				resp = handler.execute(evtConfig, req);
 			} 
 			catch(Exception ex) {
+				system.debug('Error:'+ ex.getStackTraceString());
 				throw new WebHookListenerException('HANDLER_EXECUTION_EXCEPTION', ex);
 			}
 
@@ -54,6 +55,7 @@ global class WebHookListener {
 
 		}
 		catch(WebHookListenerException ex) {
+			system.debug('Error:'+ ex.getStackTraceString());
 			hookLog.append(ex);
 			setErrorResponse(ex.getMessageOverride());
 		}
@@ -78,7 +80,7 @@ global class WebHookListener {
 	private static WebhookInboundEvent__mdt getEventConfig(RestRequest req) {
 
 		if(Test.isRunningTest()) 
-			return  Webhook2Flow_Test.getWebhookConfig();
+			return  Webhook2FlowV2_Test.getWebhookConfig();
 		//get event
 		string eventName = req.requestURI.substring(req.requestURI.lastIndexOf('/')+1);
 		eventName = eventName.split('\\?')[0].split('&')[0];

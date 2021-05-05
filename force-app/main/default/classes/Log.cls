@@ -2,7 +2,7 @@
  * @description       : 
  * @author            : Tom Snyder <tom@3ddd.com>
  * @group             : 
- * @last modified on  : 2021-04-23
+ * @last modified on  : 2021-04-30
  * @last modified by  : Tom Snyder <tom@3ddd.com>
  * Modifications Log 
  * Ver   Date         Author                      Modification
@@ -220,6 +220,7 @@ global with sharing class Log {
             restRequest.requestBody = request.getBodyAsBlob();
             restRequest.httpMethod = request.getMethod();
             restRequest.requestURI = request.getEndpoint();
+			//request.getHeader(key)
         }
         return restRequest;
     }
@@ -229,6 +230,7 @@ global with sharing class Log {
         if(resp!=null) {
             restResp.statusCode = resp.getStatusCode();
             restResp.responseBody = resp.getBodyAsBlob();
+			for (string k : resp.getHeaderKeys()) { try { restResp.headers.put(k, resp.getHeader(k)); }catch(Exception ex){} }
         }
         return restResp;
     }
