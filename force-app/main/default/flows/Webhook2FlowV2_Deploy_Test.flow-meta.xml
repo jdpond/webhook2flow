@@ -169,7 +169,7 @@
             <targetReference>Create_Contact_Demo</targetReference>
         </connector>
     </start>
-    <status>Draft</status>
+    <status>Active</status>
     <textTemplates>
         <description>Convert the numeric value to a string with description</description>
         <name>StoreIDinDescription</name>

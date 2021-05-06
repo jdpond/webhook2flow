@@ -2,7 +2,7 @@
  * @description       : 
  * @author            : Tom Snyder <tom@3ddd.com>
  * @group             : 
- * @last modified on  : 2021-04-30
+ * @last modified on  : 2021-05-06
  * @last modified by  : Tom Snyder <tom@3ddd.com>
  * Modifications Log 
  * Ver   Date         Author                      Modification
@@ -23,7 +23,7 @@ global class WebHookListener {
         RestRequest req = RestContext.request;
         RestResponse resp = RestContext.response;
 		WebhookInboundEvent__mdt evtConfig;
-		Log hookLog = new Log('WebHookListener',req, resp);
+		LogService hookLog = new LogService('WebHookListener',req);
 		hookLog.startTimer();
 		try {
 	
@@ -68,9 +68,9 @@ global class WebHookListener {
 		}
 		finally {
 			if (evtConfig.Save_Logs__c || hookLog.severity=='ERROR') {
-				hookLog.append(req, resp);
-				Log.addLog(hookLog);
-				Log.save();
+				hookLog.append(resp);
+				LogService.addLog(hookLog);
+				LogService.save();
 			}
 		}
 
