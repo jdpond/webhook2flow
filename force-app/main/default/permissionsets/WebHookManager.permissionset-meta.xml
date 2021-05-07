@@ -3,72 +3,72 @@
     <description>Manage Custom Logs (Webhooks)</description>
     <fieldPermissions>
         <editable>false</editable>
-        <field>Log__c.CallDuration__c</field>
+        <field>LogService__c.CallDuration__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
         <editable>false</editable>
-        <field>Log__c.ErrorMessage__c</field>
+        <field>LogService__c.ErrorMessage__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
         <editable>false</editable>
-        <field>Log__c.Host__c</field>
+        <field>LogService__c.Host__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
         <editable>false</editable>
-        <field>Log__c.HttpMethod__c</field>
+        <field>LogService__c.HttpMethod__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
         <editable>false</editable>
-        <field>Log__c.Message__c</field>
+        <field>LogService__c.Message__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
         <editable>false</editable>
-        <field>Log__c.RequestHeaders__c</field>
+        <field>LogService__c.RequestHeaders__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
         <editable>false</editable>
-        <field>Log__c.Request__c</field>
+        <field>LogService__c.Request__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
         <editable>false</editable>
-        <field>Log__c.ResponseHeaders__c</field>
+        <field>LogService__c.ResponseHeaders__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
         <editable>false</editable>
-        <field>Log__c.Response__c</field>
+        <field>LogService__c.Response__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
-        <field>Log__c.Severity__c</field>
+        <field>LogService__c.Severity__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
-        <field>Log__c.Source__c</field>
+        <field>LogService__c.Source__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
         <editable>false</editable>
-        <field>Log__c.StatusCode__c</field>
+        <field>LogService__c.StatusCode__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
-        <field>Log__c.Type__c</field>
+        <field>LogService__c.Type__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
         <editable>false</editable>
-        <field>Log__c.fLastMod__c</field>
+        <field>LogService__c.fLastMod__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <hasActivationRequired>false</hasActivationRequired>
@@ -79,11 +79,11 @@
         <allowEdit>true</allowEdit>
         <allowRead>true</allowRead>
         <modifyAllRecords>true</modifyAllRecords>
-        <object>Log__c</object>
+        <object>LogService__c</object>
         <viewAllRecords>true</viewAllRecords>
     </objectPermissions>
     <tabSettings>
-        <tab>Log__c</tab>
+        <tab>LogService__c</tab>
         <visibility>Visible</visibility>
     </tabSettings>
 </PermissionSet>
