@@ -70,7 +70,7 @@ global with sharing class WebHookProcessor {
 //	private static Boolean verifyDigestSignature(WebhookInboundEvent__mdt eventConfig, RestRequest req){
     private static Boolean verifyDigestSignature(WebhookInboundEvent__mdt eventConfig, RestRequest req){
         Boolean validSignature = eventConfig.Host__c == req.headers.get('Host');
-        /*
+        
         if (validSignature && eventConfig.Site_Name__c != null && eventConfig.Site_Name__c.trim().length() > 0){
             try {
                 validSignature = (UserInfo.getUserId() == 
@@ -79,7 +79,7 @@ global with sharing class WebHookProcessor {
                 validSignature = Test.isRunningTest()? true : false;
             }
         }
-        */
+        
         try {
             if (validSignature && eventConfig.Signing_Algorithm__c != null && eventConfig.Signing_Algorithm__c.trim().length() > 0 && eventConfig.Signing_Algorithm__c != 'None'){
                 String preHashHeader = '';
