@@ -5,10 +5,10 @@
         <enabled>true</enabled>
     </classAccesses>
     <layoutAssignments>
-        <layout>Log__c-Log Layout</layout>
+        <layout>APILogs__c-Log Layout</layout>
     </layoutAssignments>
     <tabVisibilities>
-        <tab>Log__c</tab>
+        <tab>APILogs__c</tab>
         <visibility>Hidden</visibility>
     </tabVisibilities>
     <userLicense>Guest User License</userLicense>
