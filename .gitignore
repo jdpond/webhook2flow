@@ -5,6 +5,13 @@
 # Salesforce cache
 .sfdx/
 .localdevserver/
+<<<<<<< HEAD
+<<<<<<< HEAD
+.vscode/
+=======
+>>>>>>> semi-stable
+=======
+>>>>>>> b5e77aa645368b456621ed2696fbd59f4bca82ab
 
 
 # LWC VSCode autocomplete
