@@ -2,8 +2,8 @@
 <Flow xmlns="http://soap.sforce.com/2006/04/metadata">
     <apiVersion>51.0</apiVersion>
     <assignments>
-        <name>Add_Error_to_Error_Collection</name>
-        <label>Add Error to Error Collection</label>
+        <name>Add_Error_To_Collection</name>
+        <label>Add Error To Collection</label>
         <locationX>314</locationX>
         <locationY>638</locationY>
         <assignmentItems>
@@ -15,66 +15,72 @@
         </assignmentItems>
     </assignments>
     <assignments>
-        <description>Assign the input parameters to a contact</description>
-        <name>Assign_Parameters_to_Contact</name>
-        <label>Assign Parameters to Contact</label>
-        <locationX>50</locationX>
-        <locationY>278</locationY>
+        <description>Assign contact elements to a new Contact record</description>
+        <name>Contact_Elements_to_new_Contact</name>
+        <label>Contact Elements to new Contact</label>
+        <locationX>314</locationX>
+        <locationY>158</locationY>
         <assignmentItems>
-            <assignToReference>NewContact.CreatedDate</assignToReference>
+            <assignToReference>NewContact.Title</assignToReference>
             <operator>Assign</operator>
             <value>
-                <elementReference>created_at</elementReference>
-            </value>
-        </assignmentItems>
-        <assignmentItems>
-            <assignToReference>NewContact.LastCUUpdateDate</assignToReference>
-            <operator>Assign</operator>
-            <value>
-                <elementReference>updated_at</elementReference>
-            </value>
-        </assignmentItems>
-        <assignmentItems>
-            <assignToReference>NewContact.Email</assignToReference>
-            <operator>Assign</operator>
-            <value>
-                <elementReference>email</elementReference>
+                <elementReference>Subject</elementReference>
             </value>
         </assignmentItems>
         <assignmentItems>
             <assignToReference>NewContact.Description</assignToReference>
             <operator>Assign</operator>
             <value>
-                <elementReference>StoreIDinDescription</elementReference>
-            </value>
-        </assignmentItems>
-        <assignmentItems>
-            <assignToReference>NewContact.Title</assignToReference>
-            <operator>Assign</operator>
-            <value>
-                <elementReference>username</elementReference>
-            </value>
-        </assignmentItems>
-        <assignmentItems>
-            <assignToReference>NewContact.FirstName</assignToReference>
-            <operator>Assign</operator>
-            <value>
-                <elementReference>FirstName</elementReference>
+                <elementReference>Description</elementReference>
             </value>
         </assignmentItems>
         <assignmentItems>
             <assignToReference>NewContact.LastName</assignToReference>
             <operator>Assign</operator>
             <value>
-                <elementReference>LastName</elementReference>
+                <elementReference>SuppliedName</elementReference>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>NewContact.Phone</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>SuppliedPhone</elementReference>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>NewContact.CreatedDate</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>Submission_Date_And_Time</elementReference>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>NewContact.AssistantName</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>SuppliedCompany</elementReference>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>NewContact.Email</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>SuppliedEmail</elementReference>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>NewContact.OtherAddress</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <stringValue>Ori</stringValue>
             </value>
         </assignmentItems>
         <connector>
-            <targetReference>Create_New_Contact</targetReference>
+            <targetReference>Generate_Contacts</targetReference>
         </connector>
     </assignments>
     <assignments>
-        <description>Set the error record</description>
         <name>Set_Error</name>
         <label>Set Error</label>
         <locationX>314</locationX>
@@ -94,45 +100,34 @@
             </value>
         </assignmentItems>
         <connector>
-            <targetReference>Add_Error_to_Error_Collection</targetReference>
+            <targetReference>Add_Error_To_Collection</targetReference>
         </connector>
     </assignments>
     <decisions>
-        <name>Create_Contact_Demo</name>
-        <label>Create Contact Demo?</label>
+        <description>If parameter is set to true, generate a single contact from individuals, and a list of contacts from ContactObjectList</description>
+        <name>Generate_Contacts</name>
+        <label>Generate Contacts?</label>
         <locationX>314</locationX>
-        <locationY>158</locationY>
-        <defaultConnectorLabel>No</defaultConnectorLabel>
+        <locationY>278</locationY>
+        <defaultConnectorLabel>Don&apos;t Generate</defaultConnectorLabel>
         <rules>
-            <name>Yes</name>
+            <name>Generate</name>
             <conditionLogic>and</conditionLogic>
             <conditions>
-                <leftValueReference>name</leftValueReference>
-                <operator>IsNull</operator>
+                <leftValueReference>testGenerateContactsParam</leftValueReference>
+                <operator>EqualTo</operator>
                 <rightValue>
-                    <booleanValue>false</booleanValue>
+                    <booleanValue>true</booleanValue>
                 </rightValue>
             </conditions>
             <connector>
-                <targetReference>Assign_Parameters_to_Contact</targetReference>
+                <targetReference>Create_New_Contact</targetReference>
             </connector>
-            <label>Yes</label>
+            <label>Generate?</label>
         </rules>
     </decisions>
-    <description>Test webflow2hook for deployment</description>
-    <formulas>
-        <description>Have to extract last name from Name to store in Contact</description>
-        <name>FirstName</name>
-        <dataType>String</dataType>
-        <expression>IF(((Find(&quot; &quot;, {!name})-1) != -1), LEFT({!name},(Find(&quot; &quot;, {!name})-1)),&quot;&quot;)</expression>
-    </formulas>
-    <formulas>
-        <name>LastName</name>
-        <dataType>String</dataType>
-        <expression>TRIM(RIGHT({!name},LEN({!name})-LEN({!FirstName})))</expression>
-    </formulas>
-    <interviewLabel>Webhook2Flow Deploy Test {!$Flow.CurrentDateTime}</interviewLabel>
-    <label>Webhook2Flow Deploy Test</label>
+    <interviewLabel>Webhook2Flow_Deploy_Test {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Webhook2Flow_Deploy_Test</label>
     <processMetadataValues>
         <name>BuilderType</name>
         <value>
@@ -153,53 +148,35 @@
     </processMetadataValues>
     <processType>AutoLaunchedFlow</processType>
     <recordCreates>
+        <name>Create_Contacts_From_Object_List</name>
+        <label>Create Contacts From Object List</label>
+        <locationX>50</locationX>
+        <locationY>518</locationY>
+        <inputReference>contactList</inputReference>
+    </recordCreates>
+    <recordCreates>
+        <description>Test creating a contact from individual parameters</description>
         <name>Create_New_Contact</name>
         <label>Create New Contact</label>
         <locationX>50</locationX>
         <locationY>398</locationY>
+        <connector>
+            <targetReference>Create_Contacts_From_Object_List</targetReference>
+        </connector>
         <faultConnector>
             <targetReference>Set_Error</targetReference>
         </faultConnector>
         <inputReference>NewContact</inputReference>
     </recordCreates>
+    <runInMode>SystemModeWithoutSharing</runInMode>
     <start>
         <locationX>188</locationX>
         <locationY>0</locationY>
         <connector>
-            <targetReference>Create_Contact_Demo</targetReference>
+            <targetReference>Contact_Elements_to_new_Contact</targetReference>
         </connector>
     </start>
     <status>Draft</status>
-    <textTemplates>
-        <description>Convert the numeric value to a string with description</description>
-        <name>StoreIDinDescription</name>
-        <isViewedAsPlainText>true</isViewedAsPlainText>
-        <text>The GitLab User ID is: {!user_id}</text>
-    </textTemplates>
-    <variables>
-        <description>For testing Messages</description>
-        <name>badFlowMessage</name>
-        <dataType>SObject</dataType>
-        <isCollection>false</isCollection>
-        <isInput>false</isInput>
-        <isOutput>false</isOutput>
-        <objectType>FlowExecutionErrorEvent</objectType>
-    </variables>
-    <variables>
-        <name>booleanList</name>
-        <dataType>Boolean</dataType>
-        <isCollection>true</isCollection>
-        <isInput>true</isInput>
-        <isOutput>false</isOutput>
-    </variables>
-    <variables>
-        <description>The employee&apos;s assigned company id</description>
-        <name>companyId</name>
-        <dataType>String</dataType>
-        <isCollection>false</isCollection>
-        <isInput>true</isInput>
-        <isOutput>false</isOutput>
-    </variables>
     <variables>
         <name>contactList</name>
         <dataType>SObject</dataType>
@@ -209,37 +186,8 @@
         <objectType>Contact</objectType>
     </variables>
     <variables>
-        <name>created_at</name>
-        <dataType>DateTime</dataType>
-        <isCollection>false</isCollection>
-        <isInput>true</isInput>
-        <isOutput>false</isOutput>
-    </variables>
-    <variables>
-        <description>Test bad type (currency not supported)</description>
-        <name>currencyList</name>
-        <dataType>Currency</dataType>
-        <isCollection>true</isCollection>
-        <isInput>true</isInput>
-        <isOutput>false</isOutput>
-        <scale>2</scale>
-    </variables>
-    <variables>
-        <name>dateList</name>
-        <dataType>Date</dataType>
-        <isCollection>true</isCollection>
-        <isInput>true</isInput>
-        <isOutput>false</isOutput>
-    </variables>
-    <variables>
-        <name>datetimeList</name>
-        <dataType>DateTime</dataType>
-        <isCollection>true</isCollection>
-        <isInput>true</isInput>
-        <isOutput>false</isOutput>
-    </variables>
-    <variables>
-        <name>email</name>
+        <description>Test Generate Contact</description>
+        <name>Description</name>
         <dataType>String</dataType>
         <isCollection>false</isCollection>
         <isInput>true</isInput>
@@ -262,31 +210,159 @@
         <objectType>FlowExecutionErrorEvent</objectType>
     </variables>
     <variables>
-        <name>ErrorMessage</name>
+        <description>Test Create a new Contact from elements</description>
+        <name>NewContact</name>
+        <dataType>SObject</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+        <objectType>Contact</objectType>
+    </variables>
+    <variables>
+        <description>Test Create Contact</description>
+        <name>Origin</name>
         <dataType>String</dataType>
         <isCollection>false</isCollection>
         <isInput>true</isInput>
-        <isOutput>true</isOutput>
+        <isOutput>false</isOutput>
     </variables>
     <variables>
-        <name>event</name>
-        <apexClass>slack_event</apexClass>
+        <description>Test Create Contact</description>
+        <name>Subject</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+    <variables>
+        <description>Test Create Contact</description>
+        <name>Submission_Date_And_Time</name>
+        <dataType>DateTime</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+    <variables>
+        <description>Test Create Contact</description>
+        <name>SuppliedCompany</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+    <variables>
+        <description>Test Create Contact</description>
+        <name>SuppliedEmail</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+    <variables>
+        <description>Test Generate Contact</description>
+        <name>SuppliedName</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+    <variables>
+        <description>Test Generate Contact</description>
+        <name>SuppliedPhone</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+    <variables>
+        <name>testApexDefined</name>
+        <apexClass>webhook2flow_apexclass_test</apexClass>
         <dataType>Apex</dataType>
         <isCollection>false</isCollection>
         <isInput>true</isInput>
-        <isOutput>true</isOutput>
+        <isOutput>false</isOutput>
     </variables>
     <variables>
-        <name>eventList</name>
-        <apexClass>slack_event</apexClass>
+        <name>testApexDefinedList</name>
+        <apexClass>webhook2flow_apexclass_test</apexClass>
         <dataType>Apex</dataType>
         <isCollection>true</isCollection>
         <isInput>true</isInput>
-        <isOutput>true</isOutput>
+        <isOutput>false</isOutput>
     </variables>
     <variables>
-        <description>Boolean to generate an error deliberately</description>
-        <name>generateError</name>
+        <name>testBoolean</name>
+        <dataType>Boolean</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+    <variables>
+        <name>testBooleanList</name>
+        <dataType>Boolean</dataType>
+        <isCollection>true</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+    <variables>
+        <description>testContact Object</description>
+        <name>testContact</name>
+        <dataType>SObject</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>true</isOutput>
+        <objectType>Contact</objectType>
+    </variables>
+    <variables>
+        <description>Currency is not currently supported - issue in setting a Currency variable from outside the flow (via put).
+Ergo: while included for future testing NOT available for input or Output</description>
+        <name>testCurrency</name>
+        <dataType>Currency</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+        <scale>2</scale>
+    </variables>
+    <variables>
+        <description>Currency is not currently supported - issue in setting a Currency variable from outside the flow (via put).
+Ergo: while included for future testing NOT available for input or Output</description>
+        <name>testCurrencyList</name>
+        <dataType>Currency</dataType>
+        <isCollection>true</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+        <scale>2</scale>
+    </variables>
+    <variables>
+        <name>testDate</name>
+        <dataType>Date</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+    <variables>
+        <name>testDateList</name>
+        <dataType>Date</dataType>
+        <isCollection>true</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+    <variables>
+        <name>testDatetime</name>
+        <dataType>DateTime</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+    <variables>
+        <name>testDatetimeList</name>
+        <dataType>DateTime</dataType>
+        <isCollection>true</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+    <variables>
+        <name>testGenerateContactsParam</name>
         <dataType>Boolean</dataType>
         <isCollection>false</isCollection>
         <isInput>true</isInput>
@@ -296,50 +372,19 @@
         </value>
     </variables>
     <variables>
-        <name>name</name>
-        <dataType>String</dataType>
+        <name>testGenerateError</name>
+        <dataType>Boolean</dataType>
         <isCollection>false</isCollection>
         <isInput>true</isInput>
         <isOutput>false</isOutput>
     </variables>
     <variables>
-        <name>NewContact</name>
-        <dataType>SObject</dataType>
-        <isCollection>false</isCollection>
-        <isInput>false</isInput>
-        <isOutput>true</isOutput>
-        <objectType>Contact</objectType>
-    </variables>
-    <variables>
-        <description>Test for numberList</description>
-        <name>numberList</name>
+        <name>testNumberList</name>
         <dataType>Number</dataType>
         <isCollection>true</isCollection>
         <isInput>true</isInput>
         <isOutput>false</isOutput>
         <scale>2</scale>
-    </variables>
-    <variables>
-        <name>Origin</name>
-        <dataType>String</dataType>
-        <isCollection>false</isCollection>
-        <isInput>true</isInput>
-        <isOutput>false</isOutput>
-    </variables>
-    <variables>
-        <name>Subject</name>
-        <dataType>String</dataType>
-        <isCollection>false</isCollection>
-        <isInput>true</isInput>
-        <isOutput>false</isOutput>
-    </variables>
-    <variables>
-        <name>testContact</name>
-        <dataType>SObject</dataType>
-        <isCollection>false</isCollection>
-        <isInput>true</isInput>
-        <isOutput>false</isOutput>
-        <objectType>Contact</objectType>
     </variables>
     <variables>
         <name>testParamBoolean</name>
@@ -349,10 +394,12 @@
         <isOutput>false</isOutput>
     </variables>
     <variables>
+        <description>Currency is not currently supported - issue in setting a Currency variable from outside the flow (via put).
+Ergo: while included for future testing NOT available for input or Output</description>
         <name>testParamCurrency</name>
         <dataType>Currency</dataType>
         <isCollection>false</isCollection>
-        <isInput>true</isInput>
+        <isInput>false</isInput>
         <isOutput>false</isOutput>
         <scale>2</scale>
     </variables>
@@ -376,7 +423,7 @@
         <isCollection>false</isCollection>
         <isInput>true</isInput>
         <isOutput>false</isOutput>
-        <scale>0</scale>
+        <scale>2</scale>
     </variables>
     <variables>
         <name>testParamText</name>
@@ -386,39 +433,47 @@
         <isOutput>false</isOutput>
     </variables>
     <variables>
-        <name>textList</name>
+        <description>Currency is not currently supported - issue in setting a Currency variable from outside the flow (via put).
+Ergo: while included for future testing NOT available for input or Output</description>
+        <name>testParamUnsupportedCurrency</name>
+        <dataType>Currency</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+        <scale>2</scale>
+    </variables>
+    <variables>
+        <name>testTextList</name>
         <dataType>String</dataType>
         <isCollection>true</isCollection>
         <isInput>true</isInput>
         <isOutput>false</isOutput>
     </variables>
     <variables>
-        <name>updated_at</name>
-        <dataType>DateTime</dataType>
+        <description>Currency is not currently supported - issue in setting a Currency variable from outside the flow (via put).
+Ergo: while included for future testing NOT available for input or Output</description>
+        <name>testUnsupportedCurrency</name>
+        <dataType>Currency</dataType>
         <isCollection>false</isCollection>
         <isInput>true</isInput>
         <isOutput>false</isOutput>
+        <scale>2</scale>
     </variables>
     <variables>
-        <name>user_id</name>
-        <dataType>Number</dataType>
-        <isCollection>false</isCollection>
+        <description>Currency is not currently supported - issue in setting a Currency variable from outside the flow (via put).
+Ergo: while included for future testing NOT available for input or Output</description>
+        <name>testUnsupportedCurrencyList</name>
+        <dataType>Currency</dataType>
+        <isCollection>true</isCollection>
         <isInput>true</isInput>
         <isOutput>false</isOutput>
-        <scale>0</scale>
+        <scale>2</scale>
     </variables>
     <variables>
-        <name>username</name>
-        <dataType>String</dataType>
-        <isCollection>false</isCollection>
-        <isInput>true</isInput>
-        <isOutput>false</isOutput>
-    </variables>
-    <variables>
-        <name>Webhook2Flow_returnErrors</name>
+        <name>webhookErrors</name>
         <dataType>SObject</dataType>
         <isCollection>true</isCollection>
-        <isInput>false</isInput>
+        <isInput>true</isInput>
         <isOutput>true</isOutput>
         <objectType>FlowExecutionErrorEvent</objectType>
     </variables>

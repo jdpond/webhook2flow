@@ -14,8 +14,8 @@
 
  * @author            : Tom Snyder <tom@3ddd.com>
  * @group             : 
- * @last modified on  : 2021-05-06
- * @last modified by  : Tom Snyder <tom@3ddd.com>
+ * @last modified on  : 05-18-2021
+ * @last modified by  : Jack D. Pond
  * Modifications LogService 
  * Ver   Date         Author                      Modification
  * 1.0   2020-11-06   Tom Snyder <tom@3ddd.com>   Initial Version
@@ -112,7 +112,8 @@ public with sharing class LogService {
 	}
 	public void append(System.RestRequest req) {
 		if (req!=null) {
-			this.record.Host__c = req.requestURI?.replace('callout:','').replace('https://','').replace('http://','').substringBefore('/')?.toLowercase();
+			string hostHeader = req.headers.get('Host'); 
+			this.record.Host__c = (hostHeader!=null) ? hostHeader : req.requestURI?.replace('callout:','').replace('https://','').replace('http://','').substringBefore('/')?.toLowercase();
             this.record.HttpMethod__c = req.httpMethod;
             this.record.RequestURI__c = req.requestURI;
             this.record.Request__c = req.requestBody?.toString();
@@ -209,7 +210,7 @@ public with sharing class LogService {
 				}
 				else {
 					ordinal++;
-					system.debug(ir);
+//					system.debug(ir);
 				}
 			}
 		}	

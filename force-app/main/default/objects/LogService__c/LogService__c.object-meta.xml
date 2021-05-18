@@ -153,6 +153,7 @@
     <enableSearch>true</enableSearch>
     <enableSharing>false</enableSharing>
     <enableStreamingApi>false</enableStreamingApi>
+    <externalSharingModel>Private</externalSharingModel>
     <label>Log</label>
     <nameField>
         <displayFormat>LOG{0000000000}</displayFormat>

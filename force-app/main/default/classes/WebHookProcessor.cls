@@ -2,8 +2,8 @@
  * @description       : 
  * @author            : Tom Snyder <tom@3ddd.com>
  * @group             : 
- * @last modified on  : 2021-05-04
- * @last modified by  : Tom Snyder <tom@3ddd.com>
+ * @last modified on  : 05-11-2021
+ * @last modified by  : Jack D. Pond
  * Modifications Log 
  * Ver   Date         Author                      Modification
  * 1.0   2021-04-21   Tom Snyder <tom@3ddd.com>   Initial Version
@@ -70,16 +70,14 @@ global with sharing class WebHookProcessor {
 //	private static Boolean verifyDigestSignature(WebhookInboundEvent__mdt eventConfig, RestRequest req){
     private static Boolean verifyDigestSignature(WebhookInboundEvent__mdt eventConfig, RestRequest req){
         Boolean validSignature = eventConfig.Host__c == req.headers.get('Host');
-        
         if (validSignature && eventConfig.Site_Name__c != null && eventConfig.Site_Name__c.trim().length() > 0){
             try {
                 validSignature = (UserInfo.getUserId() == 
-                    [SELECT GuestUserId,UrlPathPrefix FROM Site where UrlPathPrefix = :eventConfig.Site_Name__c.trim() limit 1].GuestUserId);
+                    [SELECT GuestUserId,Name FROM Site where Name = :eventConfig.Site_Name__c.trim() limit 1].GuestUserId);
             } catch(Exception e) {
                 validSignature = Test.isRunningTest()? true : false;
             }
         }
-        
         try {
             if (validSignature && eventConfig.Signing_Algorithm__c != null && eventConfig.Signing_Algorithm__c.trim().length() > 0 && eventConfig.Signing_Algorithm__c != 'None'){
                 String preHashHeader = '';

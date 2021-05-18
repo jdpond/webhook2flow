@@ -2,8 +2,8 @@
  * @description       : 
  * @author            : Tom Snyder <tom@3ddd.com>
  * @group             : 
- * @last modified on  : 2021-05-06
- * @last modified by  : Tom Snyder <tom@3ddd.com>
+ * @last modified on  : 05-14-2021
+ * @last modified by  : Jack D. Pond
  * Modifications Log 
  * Ver   Date         Author                      Modification
  * 1.0   2021-04-22   Tom Snyder <tom@3ddd.com>   Initial Version
@@ -12,6 +12,10 @@
 
 @RestResource(urlMapping='/v1/WebHookListener/*')
 global class WebHookListener {
+
+    private static final Integer GOOD_RESPONSE_DEFAULT = 200 ; // Normal Good Response
+    private static final Integer BAD_RESPONSE_DEFAULT = 400 ; // Normal Bad Response
+    private static final String INVALID_EVENT = 'INVALID_EVENT' ; // Normal Bad Response
 
 	@HttpDelete global static void doDelete() 	{ doAll(); }
     @HttpGet global static void doGet() 		{ doAll(); }
@@ -24,7 +28,7 @@ global class WebHookListener {
         RestResponse resp = RestContext.response;
 		WebhookInboundEvent__mdt evtConfig;
 		LogService hookLog = new LogService('WebHookListener',req);
-		hookLog.startTimer();
+		//hookLog.startTimer();
 		try {
 	
 			//get the event 
@@ -43,7 +47,7 @@ global class WebHookListener {
 				resp = handler.execute(evtConfig, req);
 			} 
 			catch(Exception ex) {
-				system.debug('Error:'+ ex.getStackTraceString());
+//				system.debug('Error:'+ ex.getStackTraceString());
 				throw new WebHookListenerException('HANDLER_EXECUTION_EXCEPTION', ex);
 			}
 
@@ -55,7 +59,7 @@ global class WebHookListener {
 
 		}
 		catch(WebHookListenerException ex) {
-			system.debug('Error:'+ ex.getStackTraceString());
+//			system.debug('Error:'+ ex.getStackTraceString());
 			hookLog.append(ex);
 			setErrorResponse(ex.getMessageOverride());
 		}
@@ -67,7 +71,7 @@ global class WebHookListener {
 			RestContext.response.responseBody = Blob.valueOf(JSON.serializePretty(new ErrorResponse('INTERNAL_ERROR')));
 		}
 		finally {
-			if (evtConfig.Save_Logs__c || hookLog.severity=='ERROR') {
+			if (evtConfig==null || evtConfig.Save_Logs__c==true || hookLog.severity=='ERROR') {
 				hookLog.append(resp);
 				LogService.addLog(hookLog);
 				LogService.save();
@@ -79,15 +83,16 @@ global class WebHookListener {
 
 	private static WebhookInboundEvent__mdt getEventConfig(RestRequest req) {
 
-		if(Test.isRunningTest()) 
-			return  Webhook2FlowV2_Test.getWebhookConfig();
-		//get event
-		string eventName = req.requestURI.substring(req.requestURI.lastIndexOf('/')+1);
+//get event name 
+		string uri = req.requestURI.removeEnd('/');
+		string eventName = uri.substring(uri.lastIndexOf('/')+1);
 		eventName = eventName.split('\\?')[0].split('&')[0];
+//		system.debug('eventName: ' + eventName);
 
-		WebhookInboundEvent__mdt evtConfig = WebhookInboundEvent__mdt.getInstance(eventName);
+		WebhookInboundEvent__mdt evtConfig = Test.isRunningTest() ? Webhook2Flow_Test.getWebhookConfig(eventName) : WebhookInboundEvent__mdt.getInstance(eventName);
+//		system.debug('evtConfig:' + evtConfig);
 		if (evtConfig==null) {
-			throw new WebHookListenerException('INVALID_EVENT');
+			throw new WebHookListenerException(INVALID_EVENT);
 		}
 		return evtConfig;
 	}
@@ -102,6 +107,12 @@ global class WebHookListener {
 		global string getMessageOverride() {
 			switch on (this.getMessage()){  
 				when 'HANDLER_EXECUTION_EXCEPTION' { return Label.WH_HANDLER_EXECUTION_EXCEPTION; }
+				when 'INVALID_EVENT' {
+					RestContext.response.statusCode=GOOD_RESPONSE_DEFAULT;
+					RestContext.response.addHeader('Content-Type', 'application/json');
+					RestContext.response.responseBody = Blob.valueOf('');
+					return this.getMessage();
+				}
 				//set public message overrides here...  
 				when else { return this.getMessage(); }
 			}
