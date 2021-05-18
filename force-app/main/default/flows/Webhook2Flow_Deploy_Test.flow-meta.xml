@@ -18,7 +18,7 @@
         <description>Assign contact elements to a new Contact record</description>
         <name>Contact_Elements_to_new_Contact</name>
         <label>Contact Elements to new Contact</label>
-        <locationX>314</locationX>
+        <locationX>380</locationX>
         <locationY>158</locationY>
         <assignmentItems>
             <assignToReference>NewContact.Title</assignToReference>
@@ -103,12 +103,28 @@
             <targetReference>Add_Error_To_Collection</targetReference>
         </connector>
     </assignments>
+    <assignments>
+        <name>Set_Errors_from_Package</name>
+        <label>Set Errors from Package</label>
+        <locationX>578</locationX>
+        <locationY>518</locationY>
+        <assignmentItems>
+            <assignToReference>errorCollection</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>testWebhookErrors</elementReference>
+            </value>
+        </assignmentItems>
+    </assignments>
     <decisions>
         <description>If parameter is set to true, generate a single contact from individuals, and a list of contacts from ContactObjectList</description>
         <name>Generate_Contacts</name>
         <label>Generate Contacts?</label>
-        <locationX>314</locationX>
+        <locationX>380</locationX>
         <locationY>278</locationY>
+        <defaultConnector>
+            <targetReference>Test_Error_Generation</targetReference>
+        </defaultConnector>
         <defaultConnectorLabel>Don&apos;t Generate</defaultConnectorLabel>
         <rules>
             <name>Generate</name>
@@ -124,6 +140,28 @@
                 <targetReference>Create_New_Contact</targetReference>
             </connector>
             <label>Generate?</label>
+        </rules>
+    </decisions>
+    <decisions>
+        <name>Test_Error_Generation</name>
+        <label>Test Error Generation?</label>
+        <locationX>710</locationX>
+        <locationY>398</locationY>
+        <defaultConnectorLabel>Just Exit</defaultConnectorLabel>
+        <rules>
+            <name>Generate_Error_From_Input</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>testGenerateContactsParam</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <booleanValue>true</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Set_Errors_from_Package</targetReference>
+            </connector>
+            <label>Generate Error From Input</label>
         </rules>
     </decisions>
     <interviewLabel>Webhook2Flow_Deploy_Test {!$Flow.CurrentDateTime}</interviewLabel>
@@ -170,7 +208,7 @@
     </recordCreates>
     <runInMode>SystemModeWithoutSharing</runInMode>
     <start>
-        <locationX>188</locationX>
+        <locationX>254</locationX>
         <locationY>0</locationY>
         <connector>
             <targetReference>Contact_Elements_to_new_Contact</targetReference>
@@ -372,13 +410,6 @@ Ergo: while included for future testing NOT available for input or Output</descr
         </value>
     </variables>
     <variables>
-        <name>testGenerateError</name>
-        <dataType>Boolean</dataType>
-        <isCollection>false</isCollection>
-        <isInput>true</isInput>
-        <isOutput>false</isOutput>
-    </variables>
-    <variables>
         <name>testNumberList</name>
         <dataType>Number</dataType>
         <isCollection>true</isCollection>
@@ -413,6 +444,13 @@ Ergo: while included for future testing NOT available for input or Output</descr
     <variables>
         <name>testParamDatetime</name>
         <dataType>DateTime</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+    <variables>
+        <name>testParamGenerateError</name>
+        <dataType>Boolean</dataType>
         <isCollection>false</isCollection>
         <isInput>true</isInput>
         <isOutput>false</isOutput>
@@ -468,6 +506,14 @@ Ergo: while included for future testing NOT available for input or Output</descr
         <isInput>true</isInput>
         <isOutput>false</isOutput>
         <scale>2</scale>
+    </variables>
+    <variables>
+        <name>testWebhookErrors</name>
+        <dataType>SObject</dataType>
+        <isCollection>true</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+        <objectType>FlowExecutionErrorEvent</objectType>
     </variables>
     <variables>
         <name>webhookErrors</name>

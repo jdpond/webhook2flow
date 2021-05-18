@@ -2,7 +2,7 @@
  * @description       : Webhook2Flow_Test - deployment test class for Webhook2Flow_Test
  * @author            : Jack D. Pond
  * @group             : 
- * @last modified on  : 04-29-2021
+ * @last modified on  : 05-15-2021
  * @last modified by  : Jack D. Pond
  * Modifications Log 
  * Ver   Date         Author         Modification
@@ -11,6 +11,8 @@
 @isTest
 public class Webhook2Flow_Test{
 	//https://[YourOrg].my.salesforce.com/services/apexrest/Webhook2Flow/[your_flow_API_Name]?parameter1=this+param+value&parameter2=that+param2+value...
+    static final Integer BAD_RESPONSE_DEFAULT = 400 ; // BAD_REQUEST
+    static final Integer GOOD_RESPONSE_DEFAULT = 200 ; // Normal Response
 	private Static Final String HEADER_PARM_TIMENAME = 'X_Test_Time_Stamp';
 	private Static Final String METADATA_SIGN_PARAM = 'X_Test_Signature';
 	private Static Final String HEADER_PARM_TIMEVALUE = string.valueOfGmt(System.now());
@@ -21,6 +23,7 @@ public class Webhook2Flow_Test{
 	private Static Final String METADATA_SIGN_SECRET = '8vkiK0qdBe7fxjDBuF2A';  // random value - doesn't correspond to anything
 	private Static Final String URIPART_TO_CLASS = '/services/apexrest/Webhook2Flow/';
 	private Static Final String URIPART_FLOWNAME = 'Webhook2Flow_Deploy_Test';
+	private Static Final String URIPART_FLOWNAME_INVALID = 'xyzyxxz';
 	private Static Final String URIPART_FLOWNAME_DEMO = 'Webhook2Flow_Deploy_Test';
 	private Static Final String URIPART_GOOD_PARAMS = '?testParamNumber=0'+
         											  	'&testParamText=thisString'+
@@ -36,12 +39,11 @@ public class Webhook2Flow_Test{
        													'&testParamDateTime=202100.00Z';
     private Static Final String BODY_JSON = 
 	'{' + 
-	'    "generateError": true,' + 
 	'    "Subject": "2021-01-25 Test Confirmation for Webhook2Flow_Test",' + 
 	'    "Description": "2021-01-25 From Postman to Webhook2Flow_Test.",' + 
 	'    "SuppliedName": "Le Grand Frommage",' + 
 	'    "SuppliedPhone": "2025551212",' + 
-	'    "Submission_Date_And_Time__c": "2021-01-29T12:26:00.00Z",' + 
+	'    "Submission_Date_And_Time": "2021-01-29T12:26:00.00Z",' + 
 	'    "SuppliedCompany": "Fubar United",' + 
 	'    "SuppliedEmail": "john.doe@example.com",' + 
 	'    "Origin": "Chat",' + 
@@ -52,48 +54,48 @@ public class Webhook2Flow_Test{
 	'        "HomePhone": "2025551212",' + 
     '		 "LastCURequestDate": "2021-03-26T12:26:00.00Z"' +
 	'    },' + 
-	'    "contactList": [' + 
+	'    "testContactList": [' + 
 	'        {' + 
         '        "Title" : "Test Contact 2",' + 
-        '        "LastName" : "Roe",' + 
+        '        "LastName" : "Roe 1",' + 
         '        "FirstName" : "Jane",' + 
         '        "HomePhone": "2025551213",' + 
         '		 "LastCURequestDate": "2021-03-26T12:26:00.00Z"' +
 	'        },' + 
 	'        {' + 
-        '        "Title" : "Test Contact 2",' + 
+        '        "Title" : "Test Contact 3",' + 
         '        "LastName" : "Doe 2",' + 
         '        "FirstName" : "Jane",' + 
         '        "HomePhone": "2025551214",' + 
         '		 "LastCURequestDate": "2021-03-26T12:26:00.00Z"' +
 	'        }' + 
 	'    ],' + 
-	'    "textList" : [' + 
+	'    "testTextList" : [' + 
 	'        "Testing 1,2,3",' + 
 	'        "Testing 3,4,5",' + 
 	'        "Testing 7,8,9"' + 
 	'    ],' + 
-	'    "numberList" : [' + 
+	'    "testNumberList" : [' + 
 	'        1,' + 
 	'        2,' + 
 	'        3' + 
 	'    ],' + 
-	'    "booleanList" : [' + 
+	'    "testBbooleanList" : [' + 
 	'        true,' + 
 	'        false,' + 
 	'        true' + 
 	'    ],' + 
-	'    "dateList" : [' + 
+	'    "testDateList" : [' + 
 	'        "2021-03-25",' + 
 	'        "2021-03-26",' + 
 	'        "2021-03-27"' + 
 	'    ],' + 
-	'    "datetimeList" : [' + 
+	'    "testDateTimeList" : [' + 
 	'        "2021-03-25T12:26:00.00Z",' + 
 	'        "2021-03-26T13:27:00.00Z",' + 
 	'        "2021-03-27T14:28:00.00Z"' + 
 	'    ],' + 
-	'    "currencyList" : [' + 
+	'    "testCurrencyList" : [' + 
 	'        12.34,' + 
 	'        56.78,' + 
 	'        90.12' + 
@@ -133,7 +135,6 @@ public class Webhook2Flow_Test{
 
     private Static Final String BODY_JSON_BAD = 
 	'{' + 
-	'    "generateError": true,' + 
 	'    "Subject": 1,' + 
 	'    "Description": 2,' + 
 	'    "SuppliedName": 3,' + 
@@ -149,7 +150,7 @@ public class Webhook2Flow_Test{
 	'        "HomePhone": "2025551212",' + 
     '		 "LastCURequestDate": "2021-03-26T12:26:00.00Z"' +
 	'    },' + 
-	'    "contactList": [' + 
+	'    "testContactList": [' + 
 	'        {' + 
         '        "Title" : "Test Contact 2",' + 
         '        "LastName" : "Roe",' + 
@@ -165,42 +166,42 @@ public class Webhook2Flow_Test{
         '		 "LastCURequestDate": "BadDateTime"' +
 	'        }' + 
 	'    ],' + 
-	'    "webhookErrors" :  [' + 
-	'        {' + 
-	'            "message" : "The requested resource does not exist",' + 
-	'            "errorCode" : "NOT_FOUND"' + 
-	'        }' + 
-	'    ],' + 
-	'    "textList" : [' + 
+	'    "testTextList" : [' + 
 	'        0,' + 
 	'        1,' + 
 	'        2' + 
 	'    ],' + 
-	'    "numberList" : [' + 
+	'    "testNumberList" : [' + 
 	'        "BadNumber",' + 
 	'        "BadNumber",' + 
 	'        "BadNumber"' + 
 	'    ],' + 
-	'    "booleanList" : [' + 
+	'    "testBooleanList" : [' + 
 	'        "BadBoolean",' + 
 	'        "BadBoolean",' + 
 	'        "BadBoolean"' + 
 	'    ],' + 
-	'    "dateList" : [' + 
+	'    "testDateList" : [' + 
 	'        "BadDate",' + 
 	'        "BadDate",' + 
 	'        "BadDate"' + 
 	'    ],' + 
-	'    "datetimeList" : [' + 
+	'    "testDatetimeList" : [' + 
 	'        "BadDateTime",' + 
 	'        "BadDateTime",' + 
 	'        "BadDateTime"' + 
+	'    ],' + 
+	'    "testUnsupportedCurrencyList" : [' + 
+	'        12.34,' + 
+	'        56.78,' + 
+	'        90.12' + 
 	'    ],' + 
 	'    "testParamText": -1,' + 
 	'    "testParamDate": "BadDate",' + 
 	'    "testParamDatetime": "BadDateTime",' + 
 	'    "testParamBoolean": "BadBoolean",' + 
 	'    "testParamNumber": "BadNumber",' + 
+	'    "testParamUnsupportedCurrency": "BadCurrency",' + 
 	'	 "testApexDefined": {'+
 	'        "type" : 1234.56,' + 
 	'        "channel" : "D024BE91L",' + 
@@ -228,37 +229,43 @@ public class Webhook2Flow_Test{
 	'    	}' + 
 	'    ]' + 
 	'}'	;
+    private Static Final String BODY_JSON_SEND_ERRORS = 
+	'{' + 
+	'    "testWebhookErrors" :  [' + 
+	'        {' + 
+	'            "message" : "The requested resource does not exist",' + 
+	'            "errorCode" : "NOT_FOUND"' + 
+	'        },' + 
+	'        {' + 
+	'            "message" : "This second message to validate multiple errors",' + 
+	'            "errorCode" : "BAD_ERROR_MESSAGE_2"' + 
+	'        }' + 
+	'    ]' + 
+	'}'	;
 
-	private Static Final String BODY_JSON_DEMO = 
-    '{' + 
-    '	"created_at": "2012-07-21T07:44:07Z",' + 
-    '	"updated_at": "2012-07-21T07:38:22Z",' + 
-    '	"email": "ada.lovelace@example.com",' + 
-    '	"event_name": "user_create",' + 
-    '	"name": "Ada Lovelace",' + 
-    '	"username": "al",' + 
-    '	"user_id": 65' + 
-    '}' ;  
     
 	@testSetup static void setup(){
 	}
 
-    public static WebhookInboundEvent__mdt getWebhookConfig(){
-        WebhookInboundEvent__mdt testPointDefinitionMDT = new WebhookInboundEvent__mdt(
-            Agent__c = 'Webhook2Flow.WebHook2FlowHandler',
-            Actor__c = 'Webhook2Flow_Deploy_Test',
-            DeveloperName = 'Webhook2Flow_Deploy_Test',
-            MasterLabel = 'Webhook2Flow_Deploy_Test',
-            Description__c = 'test Description',
-            Header_Signature_Parameter__c = METADATA_SIGN_PARAM,
-            Host__c = URL.getSalesforceBaseUrl().toExternalForm().replaceFirst('https://',''),
-            Payload_Concatenation__c = METADATA_HASH_PREFIX,
-            Save_Logs__c = true,
-            Secret__c = METADATA_SIGN_SECRET,				// a randomly generated sequence - not a key to anything
-            Signature_Prefix__c = METADATA_SIGN_PREFIX,
-            Signing_Algorithm__c = METADATA_SIGN_ALGORITH,
-            Site_Name__c = 'noSite'
-        );
+    public static WebhookInboundEvent__mdt getWebhookConfig(String flowName){
+        WebhookInboundEvent__mdt testPointDefinitionMDT = null;
+        if (flowName == 'Webhook2Flow_Deploy_Test'){
+            testPointDefinitionMDT = new WebhookInboundEvent__mdt(
+                Agent__c = 'Webhook2Flow.WebHook2FlowHandler',
+                Actor__c = URIPART_FLOWNAME,
+                DeveloperName = URIPART_FLOWNAME,
+                MasterLabel = URIPART_FLOWNAME,
+                Description__c = 'test Description',
+                Header_Signature_Parameter__c = METADATA_SIGN_PARAM,
+                Host__c = URL.getSalesforceBaseUrl().toExternalForm().replaceFirst('https://',''),
+                Payload_Concatenation__c = METADATA_HASH_PREFIX,
+                Save_Logs__c = true,
+                Secret__c = METADATA_SIGN_SECRET,				// a randomly generated sequence - not a key to anything
+                Signature_Prefix__c = METADATA_SIGN_PREFIX,
+                Signing_Algorithm__c = METADATA_SIGN_ALGORITH,
+                Site_Name__c = 'noSite'
+            );
+        }
         return  testPointDefinitionMDT;
     }
 
@@ -272,22 +279,24 @@ public class Webhook2Flow_Test{
             request.addHeader('Host', URL.getSalesforceBaseUrl().toExternalForm().replaceFirst('https://',''));
             request.addHeader(HEADER_PARM_TIMENAME, HEADER_PARM_TIMEVALUE);
             request.requestBody = Blob.valueOf(BODY_JSON);
-            system.debug('METADATA_HASH_PREFIX_VALUE: '+METADATA_HASH_PREFIX_VALUE);
+//            system.debug('METADATA_HASH_PREFIX_VALUE: '+METADATA_HASH_PREFIX_VALUE);
             request.addHeader(METADATA_SIGN_PARAM, METADATA_SIGN_PREFIX+EncodingUtil.convertToHex(crypto.generateMac(
                             METADATA_SIGN_ALGORITH,
                             Blob.valueOf(METADATA_HASH_PREFIX_VALUE + request.requestBody.toString()),
                             Blob.valueOf(METADATA_SIGN_SECRET)))
                         );
-            system.debug(METADATA_SIGN_PARAM+': '+request.headers.get(METADATA_SIGN_PARAM));
+//            system.debug(METADATA_SIGN_PARAM+': '+request.headers.get(METADATA_SIGN_PARAM));
             request.addParameter('testParamNumber', '0');
             request.addParameter('testParamText', 'thisString');
             request.addParameter('testParamBoolean', 'true');
             request.addParameter('testParamDate', '2021-01-29');
             request.addParameter('testParamCurrency', '12.34');
             request.addParameter('testParamDatetime', '2021-01-29T12:26:00.00Z');
+            request.addParameter('testGenerateContactsParam', 'true');
             RestContext.request = request;
             RestContext.response = resp;
             webhookListener.doPost();
+            system.assertEquals(GOOD_RESPONSE_DEFAULT,RestContext.response.statusCode, 't01_parameters_post_good_coverage: Should have been good');
             system.debug('RestContext.response.statusCode: '+RestContext.response.statusCode);
             system.debug('RestContext.response: '+RestContext.response.responseBody.toString());
         }
@@ -312,7 +321,7 @@ public class Webhook2Flow_Test{
             request.addParameter('testParamText', '1');
             request.addParameter('testParamBoolean', 'BadBoolean');
             request.addParameter('testParamDate', 'BadDate');
-            request.addParameter('testParamCurrency', 'BadCurrency');
+            request.addParameter('testParamUnsupportedCurrency', 'BadCurrency');
             request.addParameter('testParamDatetime', 'BadDateTime');
             RestContext.request = request;
             RestContext.response = resp;
@@ -410,35 +419,53 @@ public class Webhook2Flow_Test{
         }
 	}
 
-	@isTest static void t0x_Demo_Test_coverage() {
-        RestRequest request = new RestRequest();
-        RestResponse resp = new RestResponse();
-        request.requestUri = URL.getSalesforceBaseUrl() + URIPART_TO_CLASS + URIPART_FLOWNAME_DEMO;
-        request.httpMethod = 'POST';
-        request.addHeader('Content-Type', 'application/json');
-		request.addHeader('Host', URL.getSalesforceBaseUrl().toExternalForm().replaceFirst('https://',''));
-		request.addHeader(HEADER_PARM_TIMENAME, HEADER_PARM_TIMEVALUE);
-        request.requestBody = Blob.valueOf(BODY_JSON_DEMO);
-        request.addHeader(METADATA_SIGN_PARAM, METADATA_SIGN_PREFIX+EncodingUtil.convertToHex(crypto.generateMac(
-            METADATA_SIGN_ALGORITH,
-            Blob.valueOf(METADATA_HASH_PREFIX_VALUE + request.requestBody.toString()),
-            Blob.valueOf(METADATA_SIGN_SECRET)))
-		);
-        RestContext.request = request;
-        RestContext.response = resp;
-		webhookListener.doPost();
-        List<Contact> coList = [Select Id, Name from Contact];
-        request = new RestRequest();
-        resp = new RestResponse();
-        request.requestUri = URL.getSalesforceBaseUrl() + URIPART_TO_CLASS + URIPART_FLOWNAME_DEMO;
-        request.httpMethod = 'POST';
-        request.addHeader('Content-Type', 'application/json');
-        request.requestBody = Blob.valueOf(BODY_JSON_DEMO);
-        RestContext.request = request;
-        RestContext.response = resp;
-		webhookListener.doPost();
-        system.debug('RestContext.response.statusCode: '+RestContext.response.statusCode);
-        system.debug('RestContext.response: '+RestContext.response.responseBody.toString());
-        system.debug('Contact List: ' + coList);
+	@isTest static void t07_invalidURL_coverage() {
+        if (true){
+            RestRequest request = new RestRequest();
+            RestResponse resp = new RestResponse();
+            request.requestUri = URL.getSalesforceBaseUrl() + URIPART_TO_CLASS + URIPART_FLOWNAME+URIPART_FLOWNAME_INVALID;
+            request.httpMethod = 'POST';
+            request.addHeader('Content-Type', 'application/json');
+            request.addHeader('Host', URL.getSalesforceBaseUrl().toExternalForm().replaceFirst('https://',''));
+            request.addHeader(HEADER_PARM_TIMENAME, HEADER_PARM_TIMEVALUE);
+            request.requestBody = Blob.valueOf(BODY_JSON);
+            request.addHeader(METADATA_SIGN_PARAM, METADATA_SIGN_PREFIX+EncodingUtil.convertToHex(crypto.generateMac(
+                            METADATA_SIGN_ALGORITH,
+                            Blob.valueOf(METADATA_HASH_PREFIX_VALUE + request.requestBody.toString()),
+                            Blob.valueOf(METADATA_SIGN_SECRET)))
+                        );
+            RestContext.request = request;
+            RestContext.response = resp;
+            webhookListener.doPost();
+            system.debug('RestContext.response.statusCode: '+RestContext.response.statusCode);
+            system.debug('RestContext.response: '+RestContext.response.responseBody.toString());
+        }
 	}
+	@isTest static void t09_test_error_generation() {
+        if (true){
+            RestRequest request = new RestRequest();
+            RestResponse resp = new RestResponse();
+            request.requestUri = URL.getSalesforceBaseUrl() + URIPART_TO_CLASS + URIPART_FLOWNAME + URIPART_GOOD_PARAMS;
+            request.httpMethod = 'POST';
+            request.addHeader('Content-Type', 'application/json');
+            request.addHeader('Host', URL.getSalesforceBaseUrl().toExternalForm().replaceFirst('https://',''));
+            request.addHeader(HEADER_PARM_TIMENAME, HEADER_PARM_TIMEVALUE);
+            request.requestBody = Blob.valueOf(BODY_JSON_SEND_ERRORS);
+//            system.debug('METADATA_HASH_PREFIX_VALUE: '+METADATA_HASH_PREFIX_VALUE);
+            request.addHeader(METADATA_SIGN_PARAM, METADATA_SIGN_PREFIX+EncodingUtil.convertToHex(crypto.generateMac(
+                            METADATA_SIGN_ALGORITH,
+                            Blob.valueOf(METADATA_HASH_PREFIX_VALUE + request.requestBody.toString()),
+                            Blob.valueOf(METADATA_SIGN_SECRET)))
+                        );
+//            system.debug(METADATA_SIGN_PARAM+': '+request.headers.get(METADATA_SIGN_PARAM));
+            request.addParameter('testGenerateContactsParam', 'true'); // Set error in test flow
+            RestContext.request = request;
+            RestContext.response = resp;
+            webhookListener.doPost();
+			system.assertEquals(BAD_RESPONSE_DEFAULT,RestContext.response.statusCode,'t09_test_error_generation: Should have returned an error');
+            system.debug('RestContext.response.statusCode: '+RestContext.response.statusCode);
+            system.debug('RestContext.response: '+RestContext.response.responseBody.toString());
+        }
+	}
+
 }

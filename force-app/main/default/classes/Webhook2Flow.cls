@@ -2,7 +2,7 @@
  * @description       : Webhook2Flow
  * @author            : Jack D. Pond
  * @group             : PSITex, LLC
- * @last modified on  : 04-29-2021
+ * @last modified on  : 05-14-2021
  * @last modified by  : Jack D. Pond
  * Modifications Log 
  * Ver   Date         Author         Modification
@@ -30,14 +30,14 @@ global without sharing class Webhook2Flow {                         // without s
     static final String MSG_TYPE_NOT_SUPPORTED = ' is not a supported parameter type.';
     static final String JSON_PARAMETER_OBJECTYPE = '\"ObjectType\"';
     static final String DOUBLE_QUOTE = '\"';
-    static final String EXTERNAL_SERVICE_PREFIX = 'ExternalService';
 
     private static FlowExecutionErrorEvent setupError(Exception e, String relatedTo){
-        return(new FlowExecutionErrorEvent(
+        FlowExecutionErrorEvent FEE = new FlowExecutionErrorEvent(
                 ErrorId = e.getTypeName(),
                 ErrorMessage = 'RelatedTo: ' + relatedTo + ' Stack: ' + e.getStackTraceString() + ' Msg: ' + e.getMessage()
-            )
         );
+//        system.debug('FEE: ' + FEE);
+        return FEE;
     }
 
     private static String getObjectType(String inObjectType, String inDescription){
@@ -53,7 +53,7 @@ global without sharing class Webhook2Flow {                         // without s
  * @description       : WebHookProcessor.WebHookInboundHandler
  * @author            : Tom Snyder (Wrapper) Jack D. Pond (Parser)
  * @group             : 
- * @last modified on  : 04-29-2021
+ * @last modified on  : 05-14-2021
  * @last modified by  : Jack D. Pond
  * Modifications Log 
  * Ver   Date         Author         Modification
@@ -92,8 +92,6 @@ global without sharing class Webhook2Flow {                         // without s
                 List<String> flowNames = new List<String>{webHookFlowName};
                 String[] requestTypes = webHookFlowName.split('_');
 
-                // end of payload validation
-                // end of payload validation
                 if (requestTypes[requestTypes.size()-1] != whichHttp) flowNames.add(webHookFlowName+'_'+whichHttp);
                 flowVersion = paramsMap.get(FLOW_VERSIONID_PARAM) != null? String.escapeSingleQuotes(paramsMap.get(FLOW_VERSIONID_PARAM)):null;
                 FlowDefinitionView[] allViews = [SELECT ActiveVersionId,ApiName,Builder,Description,DurableId,Id,InstalledPackageName,IsActive,IsOutOfDate,IsSwingFlow,IsTemplate,Label,LastModifiedBy,LastModifiedDate,LatestVersionId,ManageableState,NamespacePrefix,ProcessType,TriggerType FROM FlowDefinitionView where ApiName in :flowNames ORDER BY ApiName ASC];
@@ -114,7 +112,8 @@ global without sharing class Webhook2Flow {                         // without s
                         }
                     }
                     responseStatusCode = outputParamMap.remove(HTTP_RESPONSE_STATUSCODE);
-                    // Add URI parameters here
+
+// URI parameters
                     for (string thisParam : paramsMap.keySet()) {
                         if (thisParam != FLOW_VERSIONID_PARAM ){
                             FlowVariableView thisInput=(FlowVariableView)inputParamMap.get(thisParam);
@@ -125,9 +124,15 @@ global without sharing class Webhook2Flow {                         // without s
                                         catch(Exception e){foundErrors.add(setupError(e, thisParam));}
                                     }
                                     when 'Number' {
-                                        try {flowParams.put(thisInput.ApiName, Decimal.valueOf(EncodingUtil.urlDecode(paramsMap.get(thisParam),'UTF-8')));}
+                                        try {flowParams.put(thisInput.ApiName, Double.valueOf(EncodingUtil.urlDecode(paramsMap.get(thisParam),'UTF-8')));}
                                         catch(Exception e){foundErrors.add(setupError(e, thisParam));}
                                     }
+/* Currency n/a - causes uncatchable exception
+                                    when 'Currency' {
+                                        try {flowParams.put(thisInput.ApiName, Double.valueOf(EncodingUtil.urlDecode(paramsMap.get(thisParam),'UTF-8')));}
+                                        catch(Exception e){foundErrors.add(setupError(e, thisParam));}
+                                    }
+*/
                                     when 'Boolean' {
                                         try {flowParams.put(thisInput.ApiName, Boolean.valueOf(EncodingUtil.urlDecode(paramsMap.get(thisParam),'UTF-8')));}
                                         catch(Exception e){foundErrors.add(setupError(e, thisParam));}
@@ -149,7 +154,7 @@ global without sharing class Webhook2Flow {                         // without s
                                     }
                                 }
                             }else{
-        /* collections currently not allowed as param list
+/* collections currently not allowed as param list
                                 if (thisInput != null && thisInput.isCollection ){
                                     FlowExecutionErrorEvent thisError = new FlowExecutionErrorEvent (
                                         ErrorId = INVALID_PARAMETER_TYPE,
@@ -159,11 +164,12 @@ global without sharing class Webhook2Flow {                         // without s
                                     if (!hasFlowError) RestContext.response.statusCode = 400;
                                     hasFlowError = true;
                                 }
-        */
+*/
                             }
                         }
                     }
-                    
+
+// Process arrays/collections                    
                     JSONParser parser = JSON.createParser(req.requestBody.toString());
                     while (parser.nextToken() != null) {
                         if(parser.getCurrentToken() == JSONToken.FIELD_NAME){
@@ -181,7 +187,7 @@ global without sharing class Webhook2Flow {                         // without s
                                             }
                                             if(thisCollection.size() >0) flowParams.put(thisInput.ApiName, thisCollection);
                                         }
-                                        when 'Number'{       // number
+                                        when 'Number' {       // number
                                             List<Double> thisCollection = new List<Double>();
                                             while (parser.nextToken() != null & parser.getCurrentToken() != JSONToken.END_ARRAY) {
                                                 try{thisCollection.add(parser.getDoubleValue());}
@@ -189,7 +195,17 @@ global without sharing class Webhook2Flow {                         // without s
                                             }
                                             if(thisCollection.size() >0) flowParams.put(thisInput.ApiName, thisCollection);
                                         }
-        /* Integer not currently supported
+/* Currency n/a - causes uncatchable exception
+                                        when 'Currency'  {       // number
+                                            List<Double> thisCollection = new List<Double>();
+                                            while (parser.nextToken() != null & parser.getCurrentToken() != JSONToken.END_ARRAY) {
+                                                try{thisCollection.add(parser.getDoubleValue());}
+                                                catch(Exception e){foundErrors.add(setupError(e, thisInput.ApiName));}
+                                            }
+                                            if(thisCollection.size() >0)flowParams.put(thisInput.ApiName, thisCollection);
+                                        }
+*/
+/* Integer not currently supported
                                         when 'Integer'{     // integer
                                             List<Integer> thisCollection = new List<Integer>();
                                             while (parser.nextToken() != null & parser.getCurrentToken() != JSONToken.END_ARRAY) {
@@ -198,7 +214,7 @@ global without sharing class Webhook2Flow {                         // without s
                                             }
                                             if(thisCollection.size() >0) flowParams.put(thisInput.ApiName, thisCollection);
                                         }
-        */
+*/
                                         when 'Boolean'{     // boolean
                                             List<Boolean> thisCollection = new List<Boolean>();
                                             while (parser.nextToken() != null & parser.getCurrentToken() != JSONToken.END_ARRAY) {
@@ -237,7 +253,7 @@ global without sharing class Webhook2Flow {                         // without s
                                             List<Object> thisCollection = new List<Object>();
                                             while (parser.nextToken() != null & parser.getCurrentToken() != JSONToken.END_ARRAY) {
                                                 if (parser.getCurrentToken() == JSONToken.START_OBJECT) {
-        //                                            (Object) thisInstance = (Object) dynamicApexType.newInstance();
+//                                                  (Object) thisInstance = (Object) dynamicApexType.newInstance();
                                                     try{thisCollection.add((Object)parser.readValueAs(Type.forName(thisInput.ObjectType)));}
                                                     catch(Exception e){foundErrors.add(setupError(e, thisInput.ApiName));}
                                                 }
@@ -255,23 +271,31 @@ global without sharing class Webhook2Flow {                         // without s
                                 } else {
                                     parser.skipChildren();
                                 }
-                            } else { // if an individual parameter
+                            } else {
+
+// individual parameters
                                 if (thisInput != null){
                                     switch on (thisInput.DataType){     // https://swagger.io/docs/specification/data-models/data-types/
                                         when 'String'{     // string
                                             try{flowParams.put(thisInput.ApiName, parser.getText());}
                                             catch(Exception e){foundErrors.add(setupError(e, thisInput.ApiName));}
                                         }
-                                        when 'Number'{       // number
+                                        when 'Number' {       // number
                                             try{flowParams.put(thisInput.ApiName, parser.getDoubleValue());}
                                             catch(Exception e){foundErrors.add(setupError(e, thisInput.ApiName));}
                                         }
-        /* Integer not implemented yet
+/* Currency n/a - causes uncatchable exception
+                                        when 'Currency' {       // number
+                                            try{flowParams.put(thisInput.ApiName, parser.getDoubleValue());}
+                                            catch(Exception e){foundErrors.add(setupError(e, thisInput.ApiName));}
+                                        }
+*/
+                                        /* Integer not implemented yet
                                         when 'Integer'{     // integer
                                             try{flowParams.put(thisInput.ApiName, parser.getIntegerValue());}
                                             catch(Exception e){foundErrors.add(setupError(e, thisInput.ApiName));}
                                         }
-        */
+*/
                                         when 'Boolean'{     // boolean
                                             try{flowParams.put(thisInput.ApiName, parser.getBooleanValue());}
                                             catch(Exception e){foundErrors.add(setupError(e, thisInput.ApiName));}
@@ -286,7 +310,7 @@ global without sharing class Webhook2Flow {                         // without s
                                         }
                                         when 'SObject' {     // object
                                             if (parser.getCurrentToken() == JSONToken.START_OBJECT) {
-        //                                        retJSON.add('"'+thisInput.ApiName+ '00" : '+JSON.serialize(parser.getCurrentToken())); // This is a debug statement
+//                                              retJSON.add('"'+thisInput.ApiName+ '00" : '+JSON.serialize(parser.getCurrentToken())); // This is a debug statement
                                                 try{flowParams.put(thisInput.ApiName , parser.readValueAs(Type.forName(thisInput.ObjectType)));}
                                                 catch(Exception e){foundErrors.add(setupError(e, thisInput.ApiName));}
                                             }
@@ -295,7 +319,7 @@ global without sharing class Webhook2Flow {                         // without s
                                             if (parser.getCurrentToken() == JSONToken.START_OBJECT) {
                                                 string thisObjectType = getObjectType(thisInput.ObjectType,thisInput.Description);
 
-        /*
+/*
                                                 
                                                 try {
                                                     
@@ -306,16 +330,11 @@ global without sharing class Webhook2Flow {                         // without s
                                                     String thisJSON = JSON.serializePretty(thisAppEvent);
                                                     system.debug(thisJSON);
                                                 }
-        //                                        catch(Exception e){foundErrors.add(setupError(e, thisInput.ApiName + '('+thisObjectType+')'));}
+//                                        catch(Exception e){foundErrors.add(setupError(e, thisInput.ApiName + '('+thisObjectType+')'));}
                                                 catch(Exception e){}
-        */
-                                                if (thisObjectType.contains(EXTERNAL_SERVICE_PREFIX+'__')){
-                                                    try{flowParams.put(thisInput.ApiName , parser.readValueAs(Type.forName(EXTERNAL_SERVICE_PREFIX,thisObjectType.replace(EXTERNAL_SERVICE_PREFIX+'__',''))));}
-                                                    catch(Exception e){foundErrors.add(setupError(e, thisInput.ApiName+'('+EXTERNAL_SERVICE_PREFIX+','+thisObjectType.replace(EXTERNAL_SERVICE_PREFIX+'__','')+')'));}
-                                                } else {
-                                                    try{flowParams.put(thisInput.ApiName , parser.readValueAs(Type.forName(thisObjectType)));}
-                                                    catch(Exception e){foundErrors.add(setupError(e, thisInput.ApiName + '('+thisObjectType+')'));}
-                                                }
+*/
+                                                try{flowParams.put(thisInput.ApiName , parser.readValueAs(Type.forName(thisObjectType)));}
+												catch(Exception e){foundErrors.add(setupError(e, thisInput.ApiName + '('+thisObjectType+')'));}
                                             }
                                         }
                                         when else {         //  additional types currently unsupported
@@ -328,10 +347,13 @@ global without sharing class Webhook2Flow {                         // without s
                     }
                     if (foundErrors.size() == 0 ){          // If no parsing errors found, execute the flow
                         Flow.Interview thisFlow = Flow.Interview.createInterview(webHookFlowName, flowParams);
-                        try {thisFlow.Start();} catch (Exception e){ foundErrors.add(setupError(e, webHookFlowName));}
+                        try {thisFlow.Start();}
+                        catch (Exception e){ foundErrors.add(setupError(e, webHookFlowName));}
+                        resp.responseBody = Blob.valueof('');
                         for (FlowVariableView thisErrorParam : responseErrors){
                             Object tmpObj;
-                            try { tmpObj = thisFlow.getVariableValue(thisErrorParam.ApiName); } catch (Exception e){ tmpObj = null;}
+                            try { tmpObj = thisFlow.getVariableValue(thisErrorParam.ApiName); }
+                            catch (Exception e){ tmpObj = null;}
                             if (tmpObj != null){
                                 foundErrors.addAll((List<FlowExecutionErrorEvent>)tmpObj);
                             }
@@ -346,7 +368,8 @@ global without sharing class Webhook2Flow {                         // without s
                         for (FlowVariableView thisVariable : outputParams){
                             if(thisVariable.DataType != 'Apex'){
                                 String tmpJSON;
-                                try {tmpJSON = JSON.serialize(thisFlow.getVariableValue(thisVariable.ApiName)); } catch (Exception e){ tmpJSON = null;}
+                                try {tmpJSON = JSON.serialize(thisFlow.getVariableValue(thisVariable.ApiName)); }
+                                catch (Exception e){ tmpJSON = null;}
                                 if (tmpJSON != null) retJSON.add('"'+thisVariable.ApiName+'" : ' + tmpJSON);
                             }
                         }
@@ -354,12 +377,15 @@ global without sharing class Webhook2Flow {                         // without s
                         retJSON.add('"webhook2flowErrors": ' + JSON.serialize(foundErrors));
                         resp.statusCode = BAD_RESPONSE_DEFAULT;
                     }
-        //            retJSON.add('"inputParamMap: "'+JSON.serialize(inputParamMap)); // This is a debug statement of all input params
-        //            retJSON.add('"outputParamMap: "'+JSON.serialize(outputParamMap)); // This is a debug statement of all output params
-        //            retJSON.add('"RestContext.response.statusCode" : '+JSON.serialize(RestContext.response.statusCode)); // This is a debug statement of all input params
-        //            retJSON.add('"RestContext.request": '+JSON.serialize(RestContext.request));
-        //            retJSON.add('"RestContext": '+JSON.serialize(RestContext));
+//                    retJSON.add('"inputParamMap: "'+JSON.serialize(inputParamMap)); // This is a debug statement of all input params
+//                    retJSON.add('"outputParamMap: "'+JSON.serialize(outputParamMap)); // This is a debug statement of all output params
+//                    retJSON.add('"RestContext.response.statusCode" : '+JSON.serialize(RestContext.response.statusCode)); // This is a debug statement of all input params
+//                    retJSON.add('"RestContext.request": '+JSON.serialize(RestContext.request));
+//                    retJSON.add('"RestContext": '+JSON.serialize(RestContext));
                     if (retJSON.size() > 0) resp.responseBody = Blob.valueof('{'+string.join(retJSON,',')+'}');
+                } else { // Specified flow not found - should have been caught in listener, but if bad configs, catches here
+                    resp.statusCode = GOOD_RESPONSE_DEFAULT; // Security - for endpoint fishers, just return good and do nothing
+                    resp.responseBody = Blob.valueof('');
                 }
                 return resp;
             }
@@ -368,7 +394,5 @@ global without sharing class Webhook2Flow {                         // without s
             }
         }
     }
-
-
     
 }
