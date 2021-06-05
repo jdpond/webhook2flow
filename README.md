@@ -86,7 +86,7 @@ Here are the basic steps to create a webhook2flow webhook receptor/servicer on a
 
 When a system event occurs (examples; add a record, perform a query, update a record, a logic or time state change), by using a webhook, that system makes a request to your defined Webhook2Flow instance.  This utility allows your Salesforce system to service the requests of external systems directly in Flows without having to go through the hassle of setting up the "web service" (at least on the salesforce side).  It does so by making your flow the service handler.
 
-For this example, let&#39;s use Slack.  Slack has a fairly mature set of webhooks available from a Slack App→Create a new app--\>Event Subscriptions→Enable Events→Subscribe to bot events→[app_mention](https://api.slack.com/events/app_mention) and follow the above cookbook.
+For this example, let&#39;s use Slack.  Slack has a fairly mature set of webhooks available from a Slack App→Create a new app-->Event Subscriptions→Enable Events→Subscribe to bot events→[app_mention](https://api.slack.com/events/app_mention) and follow the above cookbook.
 
 We&#39;re going to use it to post a note on the senders&#39; contact.
 
@@ -244,7 +244,7 @@ and the Slack [app_mention](https://api.slack.com/events/app_mention), request p
     {
         "type": "app_mention",
         "user": "U061F7AUR",
-        "text": "\<@U0LAN0Z89\> is it everything a river should be?",
+        "text": "<@U0LAN0Z89> is it everything a river should be?",
         "ts": "1515449522.000016",
         "channel": "C0LAN2Q65",
         "event_ts": "1515449522000016"
@@ -468,7 +468,7 @@ Steps:
 <img src="media/image18.png" width="350"><br/>
 <img src="media/image19.png" width="350"><br/>
 
-If you&#39;re looking for an ErrorId to return, you may want to look at those already defined in your instance at: [https://[yourinstance].my.salesforce.com/services/wsdl/tooling](https://inspiration-power-78282-dev-ed.cs68.my.salesforce.com/services/wsdl/tooling) under \<xsd:simpleType name="StatusCode"\>.
+If you&#39;re looking for an ErrorId to return, you may want to look at those already defined in your instance at: [https://[yourinstance].my.salesforce.com/services/wsdl/tooling](https://inspiration-power-78282-dev-ed.cs68.my.salesforce.com/services/wsdl/tooling) under <xsd:simpleType name="StatusCode">.
 
 -   [Defining Connected
     Apps](https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/intro_defining_remote_access_applications.htm)
