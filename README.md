@@ -1,4 +1,5 @@
 # Webhook2Flow Administrator&#39;s Guide
+[Demonstration and Introduction Video(Part 1)](https://www.youtube.com/watch?v=a3y0UOgS354)
 
 **Use Webhook2flow to connect Salesforce Flows to external system&#39;s webhooks**
 <img src="media/image01.png" width="600">
@@ -7,12 +8,12 @@
 
  **Webhook Payload** 
 ---
- **url\_verification** 
+ **url_verification** 
 ```json
     {
         "token": "Jhj5dZrVaK7ZwHHjRyZWjbDl",
         "challenge": "3eZbrw1aBm2rZgRNFdxV2595E9CY3gmdALWMmHkvFXO7tYXAYM8P",
-        "type": "url\_verification"
+        "type": "url_verification"
     }
 ```
 **Define Interface in Flow**
@@ -36,15 +37,15 @@ The way webhooks generally work, an event occurs and the source system makes an 
 - 1 [OVERVIEW](#Webhook2FlowAdministrator&#39;sGuide-OVERVI)
 - 2 [How Does This Work (The Basics)](#Webhook2FlowAdministrator&#39;sGuide-HowDoe)
 - 3 [About Authentication and Authorization](#Webhook2FlowAdministrator&#39;sGuide-AboutA)
-- 4 [Example Implementation - Step by Step for Slack app\_mention (with url\_verification)](#Webhook2FlowAdministrator&#39;sGuide-Exampl)
+- 4 [Example Implementation - Step by Step for Slack app_mention (with url_verification)](#Webhook2FlowAdministrator&#39;sGuide-Exampl)
   - 4.1 [Development Tips for this Example:](#Webhook2FlowAdministrator&#39;sGuide-Develo)
-  - 4.2 [Steps Illustrated in Slack app\_mention Example](#Webhook2FlowAdministrator&#39;sGuide-StepsI)
+  - 4.2 [Steps Illustrated in Slack app_mention Example](#Webhook2FlowAdministrator&#39;sGuide-StepsI)
   - 4.3 [2. Create the Salesforce endpoint to receive the webhook request](#Webhook2FlowAdministrator&#39;sGuide-2.Crea)
   - 4.4 [4. Create the Webhook2flow Data Interface (in Flow Builder)](#Webhook2FlowAdministrator&#39;sGuide-4.Crea)
   - 4.5 [5. Use Flow Builder to Service the request and build any needed response](#Webhook2FlowAdministrator&#39;sGuide-5.UseF)
     - 4.5.1 [Implement the Slack URL VERIFICATION HANDSHAKE flow path](#Webhook2FlowAdministrator&#39;sGuide-Implem)
-  - 4.6 [Implement the Slack app\_mention payload interface](#Webhook2FlowAdministrator&#39;sGuide-Implem)
-  - 4.7 [Implement the Slack app\_mention servicing logic](#Webhook2FlowAdministrator&#39;sGuide-Implem)
+  - 4.6 [Implement the Slack app_mention payload interface](#Webhook2FlowAdministrator&#39;sGuide-Implem)
+  - 4.7 [Implement the Slack app_mention servicing logic](#Webhook2FlowAdministrator&#39;sGuide-Implem)
 - 5 [Advanced Technical Information and Capabilities](#Webhook2FlowAdministrator&#39;sGuide-Advanc)
   - 5.1 [DataType Capabilities and Restrictions](#Webhook2FlowAdministrator&#39;sGuide-DataTy)
   - 5.2 [Specifying the HTTP Response StatusCode](#Webhook2FlowAdministrator&#39;sGuide-Specif)
@@ -67,7 +68,7 @@ In today&#39;s world, customers expect a seamless customer experience - no matte
 
 Webhook2Flow facilitates exposing a service (as a RESTful Web Service using JSON) entirely through flows and using any of the most common HTTP request interfaces.
 
-The accessing webhook can use this same URL for every HTTP request type (e.g., DELETE, GET, PATCH, POST, PUSH).  The most commonly used is POST, but this supports them all.  For the taxonomy-oriented developers, you can have a single "category" for all of these (eg. [default\_flow\_APIName]).  If you support multiple request types for this function, this utility will automatically look for existing flows of the appended request type (e.g., default\_flow\_APIName\_delete, default\_flow\_APIName\_get, default\_flow\_APIName\_patch, . . .), or you could specify each type specifically through the URL with different names.
+The accessing webhook can use this same URL for every HTTP request type (e.g., DELETE, GET, PATCH, POST, PUSH).  The most commonly used is POST, but this supports them all.  For the taxonomy-oriented developers, you can have a single "category" for all of these (eg. [default_flow_APIName]).  If you support multiple request types for this function, this utility will automatically look for existing flows of the appended request type (e.g., default_flow_APIName_delete, default_flow_APIName_get, default_flow_APIName_patch, . . .), or you could specify each type specifically through the URL with different names.
 
 5.  Use Flow Builder to Service the request and build any needed
     response.
@@ -86,7 +87,7 @@ Here are the basic steps to create a webhook2flow webhook receptor/servicer on a
 
 When a system event occurs (examples; add a record, perform a query, update a record, a logic or time state change), by using a webhook, that system makes a request to your defined Webhook2Flow instance.  This utility allows your Salesforce system to service the requests of external systems directly in Flows without having to go through the hassle of setting up the "web service" (at least on the salesforce side).  It does so by making your flow the service handler.
 
-For this example, let&#39;s use Slack.  Slack has a fairly mature set of webhooks available from a Slack App→Create a new app--\&gt;Event Subscriptions→Enable Events→Subscribe to bot events→[app\_mention](https://api.slack.com/events/app_mention) and follow the above cookbook.
+For this example, let&#39;s use Slack.  Slack has a fairly mature set of webhooks available from a Slack App→Create a new app-->Event Subscriptions→Enable Events→Subscribe to bot events→[app_mention](https://api.slack.com/events/app_mention) and follow the above cookbook.
 
 We&#39;re going to use it to post a note on the senders&#39; contact.
 
@@ -98,17 +99,17 @@ It is well beyond the scope of this implementation guide to explore the various 
 
 However, for developers, a quick way to start is to use any of the OpenAPI support tools (e.g., Postman) and create an OATH 2.0 Password Credential and use that to authenticate for development.
 
-## Example Implementation - Step by Step for Slack [app\_mention](https://api.slack.com/events/app_mention) (with url\_verification)
+## Example Implementation - Step by Step for Slack [app_mention](https://api.slack.com/events/app_mention) (with url_verification)
 
-In this example, we will use a very basic POST service provided by Slack.  This webhook2flow example will ingest the information sent by the [app\_mention](https://api.slack.com/events/app_mention) webhook event via an HTTP POST on the event of a mention (@ Your Salesforce Instance) in Slack, and processed on Salesforce using a flow (Built in Flow Builder)  to post a note on the mentioning Contact(User).
+In this example, we will use a very basic POST service provided by Slack.  This webhook2flow example will ingest the information sent by the [app_mention](https://api.slack.com/events/app_mention) webhook event via an HTTP POST on the event of a mention (@ Your Salesforce Instance) in Slack, and processed on Salesforce using a flow (Built in Flow Builder)  to post a note on the mentioning Contact(User).
 
 ### Development Tips for this Example:
 
 1. Develop and test the flow first.  Information about how the flow failed is difficult to find and use.
 2. For debugging purposes, you may want to make the Parameter Variables both Input and Output.  If you make them output, the information in them will appear in the body of the HTTP Response - and can help with debugging (if the originating source tracks all http requests and responses)
-3. Add a custom field to Contact (SlackUserId\_\_c) that associates the Contact with a Slack User ID, and add a contact with that association
+3. Add a custom field to Contact (SlackUserId__c) that associates the Contact with a Slack User ID, and add a contact with that association
 
-### Steps Illustrated in Slack [app\_mention](https://api.slack.com/events/app_mention) Example
+### Steps Illustrated in Slack [app_mention](https://api.slack.com/events/app_mention) Example
 
 1. Find (or create) the webhook you want to use from the external system.  On most state-of-the art systems, a reference guide exists of all the available webhooks and the payloads/response definitions needed to use them.
 2. Create the Salesforce endpoint to _receive_ the webhook request.
@@ -122,17 +123,17 @@ In this example, we will use a very basic POST service provided by Slack.  This 
 
 **1. Find (or create) the webhook you want to use from the external system**
 
-The webhook for this example we&#39;ll use two Slack webooks - [url\_verification](https://api.slack.com/events/url_verification) which verifies ownership of an Events API Request URL.  This webhook validates the requested webhook endpoint is actually owned by the requestor by sending a **challenge** to that endpoint and expecting it to be returned as a response when the webhook posts the verification request.
+The webhook for this example we&#39;ll use two Slack webooks - [url_verification](https://api.slack.com/events/url_verification) which verifies ownership of an Events API Request URL.  This webhook validates the requested webhook endpoint is actually owned by the requestor by sending a **challenge** to that endpoint and expecting it to be returned as a response when the webhook posts the verification request.
 
-The second part of this example will show a more advanced webhook - specifically [app\_mention](https://api.slack.com/events/app_mention) which posts a notification that a bot you&#39;ve set up in Slack as been direct messaged. But more on this later
+The second part of this example will show a more advanced webhook - specifically [app_mention](https://api.slack.com/events/app_mention) which posts a notification that a bot you&#39;ve set up in Slack as been direct messaged. But more on this later
 
-**url\_verification event**
+**url_verification event**
 ```json
 {
 
     "token": "Jhj5dZrVaK7ZwHHjRyZWjbDl",
     "challenge": "3eZbrw1aBm2rZgRNFdxV2595E9CY3gmdALWMmHkvFXO7tYXAYM8P",
-    "type": "url\_verification"
+    "type": "url_verification"
 
 }
 ```
@@ -154,17 +155,17 @@ Two options are:
 
 The endpoint URL will look like this:
 
-https://**[Your Host]****[(Optional)Site URL)] **/services/apexrest/v1/WebHookListener/** Webhook2Flow **/** [your\_flow\_API\_Name] ****?parameter1=this+param+value&amp;parameter2=that+param2+value..****. **
+https://**[Your Host]****[(Optional)Site URL)] **/services/apexrest/v1/WebHookListener/** Webhook2Flow **/** [your_flow_API_Name] ****?parameter1=this+param+value&amp;parameter2=that+param2+value..****. **
 
 1. **[Your Host] - Of course, you have to know how to get to your instance**
 2. **[(Optional)Site URL)] - If you are using a Salesforce Site, it will introduce the Unique Site URL after the host and before the Resource URI.**
 3. **Webhook2Flow - This is how you are accessing the utility. It is the defined "@RestResource" Url Mapping that invokes the utility.**
-4. **[your\_flow\_API\_Name] - This is the API name of your flow you wish to execute when the Webhook comes calling.**
+4. **[your_flow_API_Name] - This is the API name of your flow you wish to execute when the Webhook comes calling.**
 5. **[parameters] = e.g., parameter1=this+param+value&amp;parameter2=that+param2+value....  NOTE:  YOU SHOULDN&#39;T USE THESE UNLESS YOU HAVE TO!!!  We know that some existing webhooks use parameters to define the URI, so they are supported.  Body parameters will ALWAYS override URL parameters.  This doesn&#39;t mean you should use them, unless you have to.  URL parameters are not only insecure (the URL is passed open/unencrypted across the internet), they are also subject to man-in-the-middle attacks.**
 
-The accessing webhook can use this exact same URL for every HTTP request type (e.g., DELETE, GET, PATCH, **POST** , PUSH).  The most commonly used is POST, but this supports them all.  For the taxonomy-oriented developers, you can have a single "category" for all of these (eg. [default\_flow\_APIName]).  If you support multiple request types for this function, this utility will automatically look for existing flows of the appended request type (e.g., default\_flow\_APIName\_delete, default\_flow\_APIName\_get, default\_flow\_APIName\_patch, . . .), or you could specify each type specifically through the URL with different names.
+The accessing webhook can use this exact same URL for every HTTP request type (e.g., DELETE, GET, PATCH, **POST** , PUSH).  The most commonly used is POST, but this supports them all.  For the taxonomy-oriented developers, you can have a single "category" for all of these (eg. [default_flow_APIName]).  If you support multiple request types for this function, this utility will automatically look for existing flows of the appended request type (e.g., default_flow_APIName_delete, default_flow_APIName_get, default_flow_APIName_patch, . . .), or you could specify each type specifically through the URL with different names.
 
-If you have granted access to https://[Your Host][(Optional)Site URL)]/services/apexrest/ **Webhook2Flow** /**[your\_flow\_API\_Name]**), and reference a non-existent  **[your\_flow\_API\_Name],** webhook2flow will always return 200 (success) without doing anything, or even telling you that your Flow is not accessible.  This is a calculated security decision.
+If you have granted access to https://[Your Host][(Optional)Site URL)]/services/apexrest/ **Webhook2Flow** /**[your_flow_API_Name]**), and reference a non-existent  **[your_flow_API_Name],** webhook2flow will always return 200 (success) without doing anything, or even telling you that your Flow is not accessible.  This is a calculated security decision.
 
 To illustrate the Slack webhook, we&#39;ll use the simplest (and most common) access by site.  With a Site endpoint, anyone can send a request to the endpoint, but usually there is a way of validating the request - most often using **_Signing Secret_** to create a hash digest with a signature which can be checked by someone only with access to same signature.  This is also sometimes referred to as **_HMAC_** validation.
 
@@ -223,7 +224,7 @@ V0:[whatever is in the X-Slack-Request-Timestamp header parameter]:[Request Body
 
 Webhooks usually communicate in JSON data structures (often called payloads).  These data structures are defined completely in Flow Builder by defining the variables and designating them as Available for Input  for the request payload and Available for Output for the response payload.
 
-For this example, you will actually need to implement two flow paths, he Slack [URL VERIFICATION HANDSHAKE](https://api.slack.com/apis/connections/events-api) (to authorize this endpoint as a valid webhook destination), and the Slack [app\_mention](https://api.slack.com/events/app_mention) webhook flow path.
+For this example, you will actually need to implement two flow paths, he Slack [URL VERIFICATION HANDSHAKE](https://api.slack.com/apis/connections/events-api) (to authorize this endpoint as a valid webhook destination), and the Slack [app_mention](https://api.slack.com/events/app_mention) webhook flow path.
 
 The Slack Payload for [URL VERIFICATION HANDSHAKE](https://api.slack.com/apis/connections/events-api) webhook is:
 
@@ -232,47 +233,47 @@ The Slack Payload for [URL VERIFICATION HANDSHAKE](https://api.slack.com/apis/co
 {
     "token": "Jhj5dZrVaK7ZwHHjRyZWjbDl",
     "challenge": "3eZbrw1aBm2rZgRNFdxV2595E9CY3gmdALWMmHkvFXO7tYXAYM8P",
-    "type": "url\_verification"
+    "type": "url_verification"
 
 }
 ```
 ---
-and the Slack [app\_mention](https://api.slack.com/events/app_mention), request payload is defined as - but the documentation is wrong.  More on this later
+and the Slack [app_mention](https://api.slack.com/events/app_mention), request payload is defined as - but the documentation is wrong.  More on this later
 
 **JSON Request**
 ```json
     {
-        "type": "app\_mention",
+        "type": "app_mention",
         "user": "U061F7AUR",
-        "text": "\&lt;@U0LAN0Z89\&gt; is it everything a river should be?",
+        "text": "<@U0LAN0Z89> is it everything a river should be?",
         "ts": "1515449522.000016",
         "channel": "C0LAN2Q65",
-        "event\_ts": "1515449522000016"
+        "event_ts": "1515449522000016"
     }
 ```
 ---
 
 ### 5. Use Flow Builder to Service the request and build any needed response
 
-The input fields will be populated from the request.  Use those variables as you would in any flow to fulfill the request  For example, in this instance, you may want to create a note on a contact every time a user @ references the Salesforce System in a channel.  In this example we actually need two service flows; one to return the challenge necessary to establish the URL as a valid endpoint for Slack, then the second to process the actual [app\_mention](https://api.slack.com/events/app_mention).
+The input fields will be populated from the request.  Use those variables as you would in any flow to fulfill the request  For example, in this instance, you may want to create a note on a contact every time a user @ references the Salesforce System in a channel.  In this example we actually need two service flows; one to return the challenge necessary to establish the URL as a valid endpoint for Slack, then the second to process the actual [app_mention](https://api.slack.com/events/app_mention).
 
 **_REMEMBER_** :  _The Flow must be_ **_ACTIVATED_** _before it can be used by webhook2flow._
 
 #### Implement the Slack [URL VERIFICATION HANDSHAKE](https://api.slack.com/apis/connections/events-api) flow path
 
-The Slack [URL VERIFICATION HANDSHAKE](https://api.slack.com/apis/connections/events-api) is actually it&#39;s own little webhook, and as simple as it gets for logic.  This handshake is a post to the URL defined for the webhook event, and the flow logic is as simple as it gets; if the "type" == "url\_verification", return the "challenge" to the requestor.
+The Slack [URL VERIFICATION HANDSHAKE](https://api.slack.com/apis/connections/events-api) is actually it&#39;s own little webhook, and as simple as it gets for logic.  This handshake is a post to the URL defined for the webhook event, and the flow logic is as simple as it gets; if the "type" == "url_verification", return the "challenge" to the requestor.
 
 The steps are:
 
 1. Create two new Resources - ResourceType = Variable, DataType=Text, with API names "challenge" and "type".  Both of these are selected as "Available for Input" and "challenge" is also "Available for Output".
-2. Add a decision checking if the "type" == "url\_verification", and if so, done.  (You don&#39;t have to set the "challenge", because you&#39;ve already designated it as "Available for Output", so it will be what it was when passed in as "Available for Input".
+2. Add a decision checking if the "type" == "url_verification", and if so, done.  (You don&#39;t have to set the "challenge", because you&#39;ve already designated it as "Available for Output", so it will be what it was when passed in as "Available for Input".
 <img src="media/image10.png" width="314">
 
-**Voilà** - you&#39;re done with the url\_verification flow.  If Slack posts to the defined endpoint with the above "url\_verification" request, the flow returns the "challenge" value.
+**Voilà** - you&#39;re done with the url_verification flow.  If Slack posts to the defined endpoint with the above "url_verification" request, the flow returns the "challenge" value.
 
 ---
 
-### Implement the Slack [app\_mention](https://api.slack.com/events/app_mention) payload interface
+### Implement the Slack [app_mention](https://api.slack.com/events/app_mention) payload interface
 
 First some issues:
 
@@ -283,35 +284,35 @@ What we&#39;ll be doing is matching the UserID to a created contact
 
 The steps are:
 
-1. Create the resources needed for this webhook (team\_id,api\_app\_id,type, event\_id, is\_ext\_shared\_channel,event\_context)  All of these are selected as "Available for Input".
-2. Create the _event_ Complex Object as an Invocable Class (see below).  After you create it, it will be visible as an Apex-Defined Object.  The key fields needed in that object will be **_text,_** and **_user,_** and add a note to the Contact identified with the custom field SlackUserId\_\_c.
+1. Create the resources needed for this webhook (team_id,api_app_id,type, event_id, is_ext_shared_channel,event_context)  All of these are selected as "Available for Input".
+2. Create the _event_ Complex Object as an Invocable Class (see below).  After you create it, it will be visible as an Apex-Defined Object.  The key fields needed in that object will be **_text,_** and **_user,_** and add a note to the Contact identified with the custom field SlackUserId__c.
 3. Add the event as a resource
-4. Create the logic to associate the [app\_mention](https://api.slack.com/events/app_mention) webhook event with an existing contact and add the message to that contact as a Note.
+4. Create the logic to associate the [app_mention](https://api.slack.com/events/app_mention) webhook event with an existing contact and add the message to that contact as a Note.
 
-**app\_mention payload**
+**app_mention payload**
 ```json
     {
         "token": "HMomSTnOLtuEpR2hrcUa993H",
-        "team\_id": "T07GC5A2Z",
-        "api\_app\_id": "A01UY6TE6F8",
+        "team_id": "T07GC5A2Z",
+        "api_app_id": "A01UY6TE6F8",
         "event": {
-            "client\_msg\_id": "9268eff7-6a56-46f6-b02d-1af33eebd2fa",
-            "type": "app\_mention",
+            "client_msg_id": "9268eff7-6a56-46f6-b02d-1af33eebd2fa",
+            "type": "app_mention",
             "text": "Test 24",
             "user": "U07GBPGJJ",
             "ts": "1619718245.003800",
             "team": "T07GC5A2Z",
             "blocks": [
                         {
-                            "type": "rich\_text",
-                            "block\_id": "bFJ",
+                            "type": "rich_text",
+                            "block_id": "bFJ",
                             "elements": [
                                             {
-                                                "type": "rich\_text\_section",
+                                                "type": "rich_text_section",
                                                 "elements": [
                                                                 {
                                                                     "type": "user",
-                                                                    "user\_id": "U0204UN581F"
+                                                                    "user_id": "U0204UN581F"
                                                                 },
                                                                 {
                                                                     "type": "text",
@@ -323,37 +324,37 @@ The steps are:
                         }
                     ],
                     "channel": "C01VD6U6UG3",
-                    "event\_ts": "1619718245.003800"
+                    "event_ts": "1619718245.003800"
             },
-        "type": "event\_callback",
-        "event\_id": "Ev020FV4A19Q",
-        "event\_time": 1619718245,
+        "type": "event_callback",
+        "event_id": "Ev020FV4A19Q",
+        "event_time": 1619718245,
         "authorizations": [
                             {
-                                "enterprise\_id": null,
-                                "team\_id": "T07GC5A2Z",
-                                "user\_id": "U0204UN581F",
-                                "is\_bot": true,
-                                "is\_enterprise\_install": false
+                                "enterprise_id": null,
+                                "team_id": "T07GC5A2Z",
+                                "user_id": "U0204UN581F",
+                                "is_bot": true,
+                                "is_enterprise_install": false
                             }
         ],
-        "is\_ext\_shared\_channel": false,
-        "event\_context": "1-app\_mention-T07GC5A2Z-C01VD6U6UG3"
+        "is_ext_shared_channel": false,
+        "event_context": "1-app_mention-T07GC5A2Z-C01VD6U6UG3"
 }
 ```
 ---
-Couple of notes on the "REAL" payload for the Slack [app\_mention](https://api.slack.com/events/app_mention) webhook event:
+Couple of notes on the "REAL" payload for the Slack [app_mention](https://api.slack.com/events/app_mention) webhook event:
 
 1. The above definition is completely wrong.
 2. The "flat" level parameters are:
   1. token
-  2. team\_id
-  3. api\_app\_id
+  2. team_id
+  3. api_app_id
   4. type
-  5. event\_id
-  6. event\_time
-  7. is\_ext\_shared\_channel
-  8. event\_context
+  5. event_id
+  6. event_time
+  7. is_ext_shared_channel
+  8. event_context
 3. There are 4 complex objects in this payload
   1. event - YOU HAVE TO HAVE THIS ONE.  It contains all the real information you are looking for
   2. blocks(collection/array)
@@ -363,7 +364,7 @@ Couple of notes on the "REAL" payload for the Slack [app\_mention](https://api.s
 
 Sooooo, for this example, we HAVE to create a complex object (event).
 
-We looked at three different ways to do this, but for now, the  available option is to create an Apex-Defined Object using an invocable class.  The class can be called anything (in this example, it is called slack\_event), but many webhooks use the same names for complex objects (example: event, user, . . . appear in webhooks exposed for Slack, Github, Gitlab, Jira).  As a best practice, you may want to use the event publisher as a prefix for the complex object.  Example: slack\_event, github\_event, jira\_event, . . .
+We looked at three different ways to do this, but for now, the  available option is to create an Apex-Defined Object using an invocable class.  The class can be called anything (in this example, it is called slack_event), but many webhooks use the same names for complex objects (example: event, user, . . . appear in webhooks exposed for Slack, Github, Gitlab, Jira).  As a best practice, you may want to use the event publisher as a prefix for the complex object.  Example: slack_event, github_event, jira_event, . . .
 
 After you have created the invocable class ([see Below](/confluence/pages/createpage.action%3FspaceKey=SUD&amp;title=slack_eventCode&amp;linkCreation=true&amp;fromPageId=87064620)), it will appear in the drop-down when you&#39;ve specified the object type as Apex-Defined:
 
@@ -371,7 +372,7 @@ After you have created the invocable class ([see Below](/confluence/pages/create
 
 **event invocable class**
 ```javascript
-public inherited sharing class slack\_event{
+public inherited sharing class slack_event{
 
     @invocableVariable(label=&#39;type&#39; )
     @AuraEnabled
@@ -399,9 +400,9 @@ public inherited sharing class slack\_event{
 
 }
 ```
-**Voilà** - you&#39;re done with the [app\_mention](https://api.slack.com/events/app_mention)flow path.  If the Slack [app\_mention](https://api.slack.com/events/app_mention) webhook event posts to the defined endpoint with the above [app\_mention](https://api.slack.com/events/app_mention)  request, the flow adds it to the contact as a note.
+**Voilà** - you&#39;re done with the [app_mention](https://api.slack.com/events/app_mention)flow path.  If the Slack [app_mention](https://api.slack.com/events/app_mention) webhook event posts to the defined endpoint with the above [app_mention](https://api.slack.com/events/app_mention)  request, the flow adds it to the contact as a note.
 
-### Implement the Slack [app\_mention](https://api.slack.com/events/app_mention) servicing logic
+### Implement the Slack [app_mention](https://api.slack.com/events/app_mention) servicing logic
 
 Add the logic to service the webhook payload request when received.  Illustrated here is:
 
@@ -443,7 +444,7 @@ Add the logic to service the webhook payload request when received.  Illustrated
 
 ### Specifying the HTTP Response StatusCode
 
-By default, Webhook2Flow returns a StatusCode of 200 if successful, or 400 if not.  You can override this using a custom parameter (DataType Number)   **_Webhook2Flow\_RestResponse\_statusCode_** (and making it "Available for output") from your flow,   If defined in the flow and null, it will use the defaults.  If set, it will be used as the response.statusCode.  The status code you return should be one acceptable to the webhook, but you can check [here](https://httpstatuses.com/) for a list of common usage.
+By default, Webhook2Flow returns a StatusCode of 200 if successful, or 400 if not.  You can override this using a custom parameter (DataType Number)   **_Webhook2Flow_RestResponse_statusCode_** (and making it "Available for output") from your flow,   If defined in the flow and null, it will use the defaults.  If set, it will be used as the response.statusCode.  The status code you return should be one acceptable to the webhook, but you can check [here](https://httpstatuses.com/) for a list of common usage.
 
 **Exceptions and Error Processing**
 
@@ -468,7 +469,7 @@ Steps:
 <img src="media/image18.png" width="350"><br/>
 <img src="media/image19.png" width="350"><br/>
 
-If you&#39;re looking for an ErrorId to return, you may want to look at those already defined in your instance at: [https://[yourinstance].my.salesforce.com/services/wsdl/tooling](https://inspiration-power-78282-dev-ed.cs68.my.salesforce.com/services/wsdl/tooling) under \&lt;xsd:simpleType name="StatusCode"\&gt;.
+If you&#39;re looking for an ErrorId to return, you may want to look at those already defined in your instance at: [https://[yourinstance].my.salesforce.com/services/wsdl/tooling](https://inspiration-power-78282-dev-ed.cs68.my.salesforce.com/services/wsdl/tooling) under <xsd:simpleType name="StatusCode">.
 
 -   [Defining Connected
     Apps](https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/intro_defining_remote_access_applications.htm)
