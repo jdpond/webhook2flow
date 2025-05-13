@@ -70,9 +70,6 @@ Webhook2Flow facilitates exposing a service (as a RESTful Web Service using JSON
 
 The accessing webhook can use this same URL for every HTTP request type (e.g., DELETE, GET, PATCH, POST, PUSH).  The most commonly used is POST, but this supports them all.  For the taxonomy-oriented developers, you can have a single "category" for all of these (eg. [default_flow_APIName]).  If you support multiple request types for this function, this utility will automatically look for existing flows of the appended request type (e.g., default_flow_APIName_delete, default_flow_APIName_get, default_flow_APIName_patch, . . .), or you could specify each type specifically through the URL with different names.
 
-5.  Use Flow Builder to Service the request and build any needed
-    response.
-
 Here are the basic steps to create a webhook2flow webhook receptor/servicer on a Salesforce instance.
 
 1. Find (or create) the webhook you want to use from the external system.  On most state-of-the art systems, a reference guide exists of all the available webhooks and the payloads/response definitions needed to use them.
